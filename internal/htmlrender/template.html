@@ -1,111 +1,566 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>__COURSE_TITLE__</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
-    :root, [data-theme="light"] {
-      --bg-body: #f5f7f8; --bg-sidebar: #ffffff; --bg-card: #ffffff;
-      --bg-hover: #f8f9fa; --bg-active: #e6f7ff;
-      --text-main: #333333; --text-secondary: #555555; --text-muted: #999999;
-      --border-color: #e1e4e8;
-      --accent-blue: #1890ff; --accent-blue-hover: #096dd9; --accent-green: #52c41a;
-      --quiz-bg: #ffffff; --quiz-border: #d1d5da; --quiz-bg-hover: #eef1f5;
-      --quiz-correct-bg: #f0fdf4; --quiz-correct-border: #86efac; --quiz-correct-text: #166534;
-      --quiz-incorrect-bg: #fef2f2; --quiz-incorrect-border: #fca5a5; --quiz-incorrect-text: #991b1b;
-      --shadow-soft: 0 10px 30px rgba(0,0,0,0.06);
-      --sidebar-width: 380px; --text-base: 16px;
-      --radius-lg: 18px; --radius-md: 12px; --radius-sm: 10px;
-      --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    [data-theme="dark"] {
-      --bg-body: #121212; --bg-sidebar: #1e1e1e; --bg-card: #1e1e1e;
-      --bg-hover: #2d2d2d; --bg-active: #172a3a;
-      --text-main: #e0e0e0; --text-secondary: #b0b0b0; --text-muted: #666666;
-      --border-color: #333333;
-      --accent-blue: #1778d2; --accent-blue-hover: #1e8bf0; --accent-green: #43a047;
-      --quiz-bg: #252525; --quiz-border: #444444; --quiz-bg-hover: #2a2a2a;
-      --quiz-correct-bg: #143521; --quiz-correct-border: #216e3c; --quiz-correct-text: #86efac;
-      --quiz-incorrect-bg: #3b1717; --quiz-incorrect-border: #7f2222; --quiz-incorrect-text: #fca5a5;
-      --shadow-soft: 0 10px 30px rgba(0,0,0,0.25);
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; height: 100%; background: var(--bg-body); color: var(--text-main); font-family: var(--font-ui); }
-    body { display: flex; min-height: 100vh; overflow: hidden; }
-    .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); max-width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { position: sticky; top: 0; z-index: 5; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); padding: 22px 20px 18px; }
-    .course-title { margin: 0 0 10px; font-size: 22px; line-height: 1.25; font-weight: 700; color: var(--text-main); word-break: break-word; }
-    .sidebar-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .progress-text { color: var(--text-secondary); font-size: 14px; }
-    .theme-toggle { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); border-radius: 10px; cursor: pointer; padding: 8px 12px; font-size: 16px; transition: background 0.2s ease, transform 0.15s ease; }
-    .theme-toggle:hover { background: var(--bg-hover); }
-    .theme-toggle:active { transform: translateY(1px); }
-    .sidebar-body { overflow-y: auto; padding: 10px 12px 24px; }
-    .lesson { border: 1px solid transparent; border-radius: 14px; margin-bottom: 8px; }
-    .lesson-header { width: 100%; display: flex; align-items: center; gap: 10px; border: none; background: transparent; color: var(--text-main); cursor: pointer; padding: 12px 12px; border-radius: 12px; text-align: left; font-size: 15px; font-weight: 650; transition: background 0.2s ease; }
-    .lesson-header:hover { background: var(--bg-hover); }
-    .lesson-arrow { display: inline-flex; width: 20px; justify-content: center; color: var(--text-muted); font-size: 13px; flex: 0 0 20px; }
-    .lesson-steps { display: flex; flex-direction: column; gap: 4px; padding: 0 0 8px 14px; }
-    .step-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; color: var(--text-secondary); padding: 10px 12px 10px 16px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 14px; transition: background 0.2s ease, color 0.2s ease; }
-    .step-item:hover { background: var(--bg-hover); color: var(--text-main); }
-    .step-item::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 4px; border-radius: 999px; background: transparent; }
-    .step-item.active { background: var(--bg-active); color: var(--accent-blue); font-weight: 600; }
-    .step-item.active::before { background: var(--accent-blue); }
-    .step-item.completed .step-check { color: var(--accent-green); opacity: 1; }
-    .step-check { flex: 0 0 18px; width: 18px; text-align: center; color: transparent; opacity: 0.15; font-size: 13px; }
-    .step-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%; }
-    .main { flex: 1; min-width: 0; overflow-y: auto; padding: 28px; }
-    .content-wrap { max-width: 980px; margin: 0 auto; }
-    .content-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 34px 38px; }
-    .step-title-main { margin: 0 0 24px; padding-bottom: 14px; border-bottom: 2px solid var(--border-color); font-size: 34px; line-height: 1.2; color: var(--text-main); }
-    .step-content { font-size: var(--text-base); color: var(--text-main); line-height: 1.72; word-wrap: break-word; }
-    .step-content h2, .step-content h3, .step-content h4, .step-content h5, .step-content h6 { margin: 1.45em 0 0.55em; line-height: 1.25; color: var(--text-main); }
-    .step-content h2 { font-size: 28px; } .step-content h3 { font-size: 24px; } .step-content h4 { font-size: 20px; }
-    .step-content p { margin: 0 0 1em; color: var(--text-main); }
-    .step-content ul, .step-content ol { margin: 0 0 1.1em 1.4em; padding: 0; }
-    .step-content li { margin: 0.32em 0; }
-    .step-content strong { font-weight: 700; } .step-content em { font-style: italic; }
-    .video-wrapper { width: 100%; display: flex; justify-content: center; margin: 32px 0; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .video-wrapper video, .step-content video { width: 100%; max-height: 60vh; outline: none; display: block; }
-    .step-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: var(--text-base); }
-    .step-content th, .step-content td { padding: 10px 14px; border: 1px solid var(--border-color); text-align: left; vertical-align: top; }
-    .step-content th { background: var(--bg-hover); font-weight: 600; }
-    .quiz-section { margin-top: 36px; padding-top: 28px; border-top: 2px dashed var(--border-color); }
-    .quiz-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-    .quiz-title { margin: 0; font-size: 24px; line-height: 1.2; }
-    .quiz-reset { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); border-radius: 10px; padding: 9px 12px; cursor: pointer; font-size: 14px; }
-    .quiz-reset:hover { background: var(--bg-hover); }
-    .quiz-list { display: grid; gap: 16px; }
-    .quiz-card { background: var(--quiz-bg); border: 1px solid var(--quiz-border); border-radius: 14px; padding: 18px 18px 16px; transition: border-color 0.2s ease, background 0.2s ease; }
-    .quiz-card.correct { background: var(--quiz-correct-bg); border-color: var(--quiz-correct-border); }
-    .quiz-card.incorrect { background: var(--quiz-incorrect-bg); border-color: var(--quiz-incorrect-border); }
-    .quiz-question { margin: 0 0 14px; font-size: 17px; line-height: 1.45; font-weight: 600; color: var(--text-main); }
-    .quiz-options { display: grid; gap: 10px; }
-    .quiz-option { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--quiz-border); border-radius: 12px; padding: 12px 13px; cursor: pointer; background: transparent; transition: background 0.2s ease, border-color 0.2s ease; }
-    .quiz-option:hover { background: var(--quiz-bg-hover); }
-    .quiz-option input { margin-top: 3px; flex: 0 0 auto; }
-    .quiz-option.correct { border-color: var(--quiz-correct-border); background: var(--quiz-correct-bg); color: var(--quiz-correct-text); }
-    .quiz-option.incorrect { border-color: var(--quiz-incorrect-border); background: var(--quiz-incorrect-bg); color: var(--quiz-incorrect-text); }
-    .quiz-message { margin-top: 12px; font-size: 14px; font-weight: 600; min-height: 20px; }
-    .quiz-card.correct .quiz-message { color: var(--quiz-correct-text); }
-    .quiz-card.incorrect .quiz-message { color: var(--quiz-incorrect-text); }
-    .nav-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--border-color); }
-    .nav-btn { appearance: none; border: none; background: var(--accent-blue); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s ease, opacity 0.2s ease, transform 0.15s ease; }
-    .nav-btn:hover:not(:disabled) { background: var(--accent-blue-hover); }
-    .nav-btn:active:not(:disabled) { transform: translateY(1px); }
-    .nav-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .empty-state { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; text-align: center; color: var(--text-secondary); box-shadow: var(--shadow-soft); }
-    @media (max-width: 980px) {
-      body { flex-direction: column; overflow: auto; }
-      .sidebar { width: 100%; min-width: 100%; max-width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); max-height: 42vh; }
-      .main { padding: 18px; }
-      .content-card { padding: 22px 18px; }
-      .step-title-main { font-size: 28px; }
-      .nav-row { flex-direction: column; }
-      .nav-btn { width: 100%; }
-      .quiz-header { align-items: flex-start; flex-direction: column; }
-    }
+/* ═══════════════════════════════════════════════════════════════
+   COURSE VIEWER — Design System
+   Light: orange accent  |  Dark: violet accent
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap');
+
+/* ── Tokens ────────────────────────────────────────────────────── */
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* accent */
+  --accent:        #f97316;
+  --accent-hover:  #ea6c0a;
+  --accent-muted:  rgba(249,115,22,.12);
+  --accent-border: rgba(249,115,22,.3);
+
+  /* surfaces */
+  --bg:            #fafaf9;
+  --bg-sidebar:    #f4f3f0;
+  --surface:       #ffffff;
+  --surface-2:     #f9f8f6;
+  --border:        rgba(0,0,0,.08);
+  --border-strong: rgba(0,0,0,.14);
+
+  /* text */
+  --text:          #111110;
+  --text-2:        #57534e;
+  --text-3:        #a8a29e;
+
+  /* nav */
+  --nav-item-hover: rgba(0,0,0,.05);
+  --nav-item-active-bg: rgba(249,115,22,.1);
+  --nav-item-active-text: #ea6c0a;
+
+  /* player accent — matches brand accent */
+  --vp-accent: #f97316;
+
+  /* misc */
+  --radius:     10px;
+  --radius-lg:  14px;
+  --sidebar-w:  280px;
+  --transition: 160ms cubic-bezier(.16,1,.3,1);
+
+  /* quiz */
+  --quiz-border: rgba(0,0,0,.1);
+  --quiz-bg: #fafaf9;
+  --quiz-hover: rgba(0,0,0,.04);
+  --quiz-correct-bg: #f0fdf4; --quiz-correct-border: #86efac; --quiz-correct-text: #15803d;
+  --quiz-incorrect-bg: #fff1f2; --quiz-incorrect-border: #fca5a5; --quiz-incorrect-text: #b91c1c;
+}
+
+[data-theme="dark"] {
+  --accent:        #a78bfa;
+  --accent-hover:  #c4b5fd;
+  --accent-muted:  rgba(167,139,250,.12);
+  --accent-border: rgba(167,139,250,.3);
+
+  --bg:            #0c0c0d;
+  --bg-sidebar:    #111113;
+  --surface:       #18181b;
+  --surface-2:     #1c1c1f;
+  --border:        rgba(255,255,255,.07);
+  --border-strong: rgba(255,255,255,.12);
+
+  --text:          #fafafa;
+  --text-2:        #a1a1aa;
+  --text-3:        #52525b;
+
+  --nav-item-hover: rgba(255,255,255,.05);
+  --nav-item-active-bg: rgba(167,139,250,.12);
+  --nav-item-active-text: #c4b5fd;
+
+  --vp-accent: #a78bfa;
+
+  --quiz-border: rgba(255,255,255,.1);
+  --quiz-bg: #1c1c1f;
+  --quiz-hover: rgba(255,255,255,.04);
+  --quiz-correct-bg: #052e16; --quiz-correct-border: #166534; --quiz-correct-text: #86efac;
+  --quiz-incorrect-bg: #2d0a0a; --quiz-incorrect-border: #7f1d1d; --quiz-incorrect-text: #fca5a5;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; height: 100%; }
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+}
+img, video { max-width: 100%; display: block; }
+button { cursor: pointer; font-family: inherit; }
+a { color: var(--accent); }
+
+/* ── Layout ────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  scroll-behavior: smooth;
+}
+
+/* ── Sidebar Header ───────────────────────────────────────────── */
+.sidebar-header {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.course-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+.progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.progress-text {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.progress-bar-wrap {
+  flex: 1;
+  height: 3px;
+  background: var(--border-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* ── Sidebar Body ─────────────────────────────────────────────── */
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.sidebar-body::-webkit-scrollbar { width: 4px; }
+.sidebar-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+/* ── Sidebar Footer (settings button) ────────────────────────── */
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 10px 10px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+}
+.sidebar-settings-btn:hover { background: var(--nav-item-hover); color: var(--text); }
+.sidebar-settings-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ── Lesson / Step items ──────────────────────────────────────── */
+.lesson { }
+.lesson-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 16px 6px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: .01em;
+  border-radius: 0;
+  transition: color var(--transition), background var(--transition);
+  line-height: 1.3;
+}
+.lesson-header:hover { color: var(--text); background: var(--nav-item-hover); }
+.lesson-arrow {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  transition: transform 0.18s ease;
+  color: var(--text-3);
+}
+.lesson-arrow.open { transform: rotate(90deg); }
+.lesson-name { flex: 1; min-width: 0; word-break: break-word; }
+
+.lesson-steps { padding: 2px 0; }
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 14px 6px 28px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-2);
+  border-radius: 0;
+  transition: background var(--transition), color var(--transition);
+  cursor: pointer;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.step-item:hover { background: var(--nav-item-hover); color: var(--text); }
+.step-item.active {
+  background: var(--nav-item-active-bg);
+  color: var(--nav-item-active-text);
+  font-weight: 500;
+}
+.step-item.completed .step-dot::after { background: var(--accent); }
+.step-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  position: relative;
+}
+.step-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background var(--transition);
+}
+.step-item.active .step-dot::after { background: var(--accent); }
+
+/* ── Content Card ─────────────────────────────────────────────── */
+.content-card {
+  max-width: 800px;
+}
+.step-title-main {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  margin-bottom: 28px;
+  color: var(--text);
+}
+
+/* ── Step content (docx HTML) ─────────────────────────────────── */
+.step-content { color: var(--text); }
+.step-content h1,.step-content h2 { font-size: 20px; font-weight: 700; margin: 32px 0 12px; color: var(--text); }
+.step-content h3,.step-content h4 { font-size: 17px; font-weight: 600; margin: 24px 0 8px; color: var(--text); }
+.step-content h5,.step-content h6 { font-size: 15px; font-weight: 600; margin: 18px 0 6px; color: var(--text-2); }
+.step-content p  { margin: 0 0 14px; color: var(--text-2); max-width: 70ch; }
+.step-content ul,.step-content ol { padding-left: 20px; margin: 0 0 14px; color: var(--text-2); }
+.step-content li { margin-bottom: 6px; }
+.step-content strong { color: var(--text); font-weight: 600; }
+.step-content em { color: var(--text-2); }
+.step-content table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border);
+}
+.step-content th,.step-content td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.step-content th { background: var(--surface-2); font-weight: 600; font-size: 13px; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
+.step-content code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+.step-content pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; overflow-x: auto; margin: 16px 0; }
+.step-content pre code { background: none; border: none; padding: 0; }
+
+/* ── Nav buttons ──────────────────────────────────────────────── */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.nav-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background var(--transition), opacity var(--transition), transform var(--transition);
+}
+.nav-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.nav-btn:active:not(:disabled) { transform: translateY(1px); }
+.nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.nav-btn.secondary { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+.nav-btn.secondary:hover:not(:disabled) { background: var(--nav-item-hover); color: var(--text); }
+
+/* ── Quiz ──────────────────────────────────────────────────────── */
+.quiz-section { margin-top: 40px; padding-top: 32px; border-top: 1px dashed var(--border-strong); }
+.quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.quiz-title { font-size: 18px; font-weight: 700; }
+.quiz-reset { padding: 7px 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); border-radius: 8px; font-size: 13px; font-weight: 500; transition: all var(--transition); }
+.quiz-reset:hover { background: var(--nav-item-hover); color: var(--text); }
+.quiz-list { display: grid; gap: 14px; }
+.quiz-card { background: var(--quiz-bg); border: 1px solid var(--quiz-border); border-radius: var(--radius-lg); padding: 18px; }
+.quiz-card.correct { background: var(--quiz-correct-bg); border-color: var(--quiz-correct-border); }
+.quiz-card.incorrect { background: var(--quiz-incorrect-bg); border-color: var(--quiz-incorrect-border); }
+.quiz-question { margin: 0 0 14px; font-size: 15px; font-weight: 600; }
+.quiz-options { display: grid; gap: 8px; }
+.quiz-option { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--quiz-border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: background var(--transition); font-size: 14px; }
+.quiz-option:hover { background: var(--quiz-hover); }
+.quiz-option input { margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); }
+.quiz-option.correct { border-color: var(--quiz-correct-border); background: var(--quiz-correct-bg); }
+.quiz-option.incorrect { border-color: var(--quiz-incorrect-border); background: var(--quiz-incorrect-bg); }
+.quiz-message { margin-top: 10px; font-size: 13px; font-weight: 600; min-height: 18px; }
+.quiz-card.correct .quiz-message { color: var(--quiz-correct-text); }
+.quiz-card.incorrect .quiz-message { color: var(--quiz-incorrect-text); }
+
+/* ── Empty state ──────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 80px 20px; color: var(--text-2); }
+
+/* ── Settings Modal ───────────────────────────────────────────── */
+.settings-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.settings-backdrop.open { opacity: 1; pointer-events: all; }
+.settings-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.2s cubic-bezier(.16,1,.3,1);
+}
+.settings-backdrop.open .settings-modal { transform: scale(1) translateY(0); }
+.settings-nav {
+  width: 160px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding: 16px 8px;
+  background: var(--surface-2);
+}
+.settings-nav-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 4px 10px 10px;
+}
+.settings-nav-item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none; border: none;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2);
+  text-align: left;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.settings-nav-item:hover { background: var(--nav-item-hover); color: var(--text); }
+.settings-nav-item.active { background: var(--nav-item-active-bg); color: var(--nav-item-active-text); }
+.settings-nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.settings-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+.settings-content-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.settings-content-title { font-size: 16px; font-weight: 700; }
+.settings-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  border-radius: 6px;
+  color: var(--text-3);
+  transition: all var(--transition);
+}
+.settings-close:hover { background: var(--nav-item-hover); color: var(--text); }
+.settings-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 10px;
+}
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.theme-option {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+.theme-option:hover { border-color: var(--border-strong); }
+.theme-option.selected { border-color: var(--accent); background: var(--accent-muted); }
+.theme-preview {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+}
+/* Light preview */
+.theme-preview.light { background: #fafaf9; }
+.theme-preview.light::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 35%; background: #f4f3f0; border-right: 1px solid #e5e5e4; }
+.theme-preview.light::after { content: ''; position: absolute; right: 10%; top: 30%; width: 40%; height: 6px; background: #f97316; border-radius: 3px; }
+/* Dark preview */
+.theme-preview.dark { background: #0c0c0d; }
+.theme-preview.dark::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 35%; background: #111113; border-right: 1px solid rgba(255,255,255,.07); }
+.theme-preview.dark::after { content: ''; position: absolute; right: 10%; top: 30%; width: 40%; height: 6px; background: #a78bfa; border-radius: 3px; }
+/* System preview */
+.theme-preview.system { background: linear-gradient(to right, #fafaf9 50%, #0c0c0d 50%); }
+.theme-option-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.theme-option.selected .theme-option-label { color: var(--accent); }
+.settings-check {
+  position: absolute; top: 6px; right: 6px;
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: none;
+  align-items: center; justify-content: center;
+}
+.theme-option.selected .settings-check { display: flex; }
+.settings-check svg { width: 10px; height: 10px; color: #fff; }
+
+/* ── Video Player ─────────────────────────────────────────────── */
+.vp-wrap {
+  position: relative; width: 100%;
+  margin: 28px 0;
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  user-select: none;
+}
+.vp-wrap video { width: 100%; max-height: 60vh; display: block; outline: none; cursor: pointer; }
+.vp-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.vp-ripple { width: 68px; height: 68px; background: rgba(255,255,255,.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.22s; backdrop-filter: blur(4px); }
+.vp-ripple.show { opacity: 1; }
+.vp-ripple svg { width: 30px; height: 30px; fill: #fff; }
+.vp-controls {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.85));
+  padding: 32px 14px 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.vp-wrap:hover .vp-controls,
+.vp-wrap.paused .vp-controls,
+.vp-wrap.show-ui .vp-controls { opacity: 1; }
+.vp-progress {
+  position: relative; height: 4px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px; cursor: pointer;
+  transition: height 0.15s;
+}
+.vp-progress:hover { height: 6px; }
+.vp-progress-buf { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255,255,255,.25); border-radius: 2px; pointer-events: none; }
+.vp-progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--vp-accent); border-radius: 2px; pointer-events: none; }
+.vp-progress-thumb { position: absolute; top: 50%; width: 12px; height: 12px; background: var(--vp-accent); border-radius: 50%; transform: translate(-50%,-50%) scale(0); transition: transform 0.15s; pointer-events: none; box-shadow: 0 0 4px rgba(0,0,0,.4); }
+.vp-progress:hover .vp-progress-thumb { transform: translate(-50%,-50%) scale(1); }
+.vp-time-tip { position: absolute; bottom: 14px; background: rgba(0,0,0,.75); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; pointer-events: none; transform: translateX(-50%); white-space: nowrap; opacity: 0; transition: opacity 0.1s; }
+.vp-progress:hover .vp-time-tip { opacity: 1; }
+.vp-row { display: flex; align-items: center; gap: 8px; }
+.vp-btn { background: none; border: none; cursor: pointer; padding: 4px; color: rgba(255,255,255,.9); display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
+.vp-btn:hover { color: #fff; background: rgba(255,255,255,.12); }
+.vp-btn svg { width: 20px; height: 20px; fill: currentColor; }
+.vp-time { color: rgba(255,255,255,.8); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vp-spacer { flex: 1; }
+.vp-speed-wrap { position: relative; }
+.vp-speed-btn { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.9); padding: 3px 8px; border: 1.5px solid rgba(255,255,255,.3); border-radius: 6px; background: none; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.vp-speed-btn:hover { border-color: var(--vp-accent); color: var(--vp-accent); }
+.vp-speed-menu { position: absolute; bottom: 34px; right: 0; background: rgba(15,15,18,.95); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; overflow: hidden; min-width: 84px; display: none; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.vp-speed-menu.open { display: flex; }
+.vp-speed-item { padding: 8px 14px; font-size: 13px; color: rgba(255,255,255,.75); cursor: pointer; transition: all 0.1s; text-align: center; font-family: var(--font); }
+.vp-speed-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.vp-speed-item.selected { color: var(--vp-accent); font-weight: 700; }
+.vp-toast { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.7); color: #fff; font-size: 12px; padding: 4px 12px; border-radius: 20px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; font-family: var(--font); }
+.vp-toast.show { opacity: 1; }
+.vp-vol-wrap { display: flex; align-items: center; gap: 6px; }
+.vp-vol-slider { -webkit-appearance: none; appearance: none; width: 64px; height: 3px; background: rgba(255,255,255,.22); border-radius: 2px; cursor: pointer; outline: none; accent-color: var(--vp-accent); }
+.vp-vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; background: var(--vp-accent); border-radius: 50%; cursor: pointer; }
+/* alias */
+.video-wrapper { position: relative; width: 100%; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 980px) {
+  body { flex-direction: column; overflow: auto; height: auto; }
+  .sidebar { width: 100%; min-width: 100%; max-width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .sidebar-body { max-height: 40vh; }
+  .main { padding: 20px; }
+  .content-card { max-width: 100%; }
+  .nav-row { flex-direction: column; }
+  .nav-btn { width: 100%; justify-content: center; }
+}
+
   </style>
 </head>
 <body>
@@ -113,138 +568,529 @@
   <main class="main" id="main">
     <div class="content-wrap" id="contentWrap"></div>
   </main>
+
+  <!-- Settings Modal -->
+  <div class="settings-backdrop" id="settingsBackdrop">
+    <div class="settings-modal" role="dialog" aria-label="Настройки">
+      <nav class="settings-nav">
+        <div class="settings-nav-title">Настройки</div>
+        <button class="settings-nav-item active" data-panel="appearance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Appearance
+        </button>
+      </nav>
+      <div class="settings-content">
+        <div class="settings-content-header">
+          <h2 class="settings-content-title">Appearance</h2>
+          <button class="settings-close" id="settingsCloseBtn" aria-label="Закрыть">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="settings-section-label">Тема</div>
+        <div class="theme-grid">
+          <button class="theme-option" data-theme="light">
+            <div class="settings-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l2 2 4-4"/></svg></div>
+            <div class="theme-preview light"></div>
+            <span class="theme-option-label">Светлая</span>
+          </button>
+          <button class="theme-option" data-theme="dark">
+            <div class="settings-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l2 2 4-4"/></svg></div>
+            <div class="theme-preview dark"></div>
+            <span class="theme-option-label">Тёмная</span>
+          </button>
+          <button class="theme-option" data-theme="system">
+            <div class="settings-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l2 2 4-4"/></svg></div>
+            <div class="theme-preview system"></div>
+            <span class="theme-option-label">Системная</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const b64Data = "__BASE64_DATA__";
-    const courseData = JSON.parse(decodeURIComponent(escape(window.atob(b64Data))));
-    const TOTAL_STEPS = __TOTAL_STEPS__;
-    const COURSE_TITLE = "__COURSE_TITLE_JS__";
-    let currentLessonIdx = 0, currentStepIdx = 0;
-    const COURSE_KEY = "course_" + COURSE_TITLE.replace(/\s+/g,"_").replace(/[^\w\u0400-\u04FF]/g,"").slice(0,40);
-    let completedSteps = new Set(readJSON(COURSE_KEY + "_progress", []));
-    let savedQuizzes = readJSON(COURSE_KEY + "_quizzes", {});
-    let openLessons = new Set(courseData.length ? [0] : []);
-    function readJSON(k, fb) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(_) { return fb; } }
-    function writeJSON(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-    function escapeHtml(v) { return String(v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-    function truncateTitle(t) { return t.length > 60 ? t.slice(0, 57) + "..." : t; }
-    function stepId(l, s) { return `${l}-${s}`; }
-    function quizKey(l, s, q) { return `${l}_${s}_${q}`; }
-    // isValidStep redefined below with tree support
-    // flattenIndex/locateByFlat removed — replaced by buildFlatList/_flatList
-    function getInitialTheme() { const s=localStorage.getItem(COURSE_KEY + "_theme"); if(s==="light"||s==="dark")return s; return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"; }
-    function getCurrentTheme() { return document.documentElement.getAttribute("data-theme")||getInitialTheme(); }
-    function applyTheme(t) { document.documentElement.setAttribute("data-theme",t); const b=document.getElementById("themeToggle"); if(b)b.textContent=t==="dark"?"☀️":"🌙"; }
-    function toggleTheme() { const n=getCurrentTheme()==="dark"?"light":"dark"; localStorage.setItem(COURSE_KEY + "_theme",n); applyTheme(n); }
-    function updateProgressText() { const e=document.getElementById("progressText"); if(e)e.textContent=`Пройдено ${completedSteps.size}/${TOTAL_STEPS}`; }
-    function markStepCompleted(l,s) { const id=stepId(l,s); if(!completedSteps.has(id)){completedSteps.add(id);writeJSON(COURSE_KEY + "_progress",Array.from(completedSteps));} updateProgressText(); }
-    // Flatten all steps from tree for stepId addressing
-    // stepId uses global flat index across all steps in tree order
-    let _flatSteps = []; // [{lIdx, sIdx}] — built on renderSidebar
-    function buildFlatSteps() {
-      _flatSteps = [];
-      function walk(node, lIdx) {
-        (node.steps||[]).forEach((s,sIdx)=>_flatSteps.push({lIdx,sIdx}));
-        (node.children||[]).forEach((child,ci)=>walk(child, lIdx+"."+ci));
-      }
-      courseData.forEach((lesson,lIdx)=>walk(lesson,lIdx));
+// ══ Settings Modal ══════════════════════════════════════════════
+function initSettings() {
+  const backdrop = document.getElementById('settingsBackdrop');
+  if (!backdrop) return;
+
+  // Open
+  document.getElementById('settingsOpenBtn')?.addEventListener('click', () => {
+    backdrop.classList.add('open');
+  });
+
+  // Close
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) backdrop.classList.remove('open');
+  });
+  document.getElementById('settingsCloseBtn')?.addEventListener('click', () => {
+    backdrop.classList.remove('open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') backdrop.classList.remove('open');
+  });
+
+  // Theme options
+  backdrop.querySelectorAll('.theme-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const theme = opt.dataset.theme;
+      applyThemeSetting(theme);
+      backdrop.querySelectorAll('.theme-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      try { localStorage.setItem(COURSE_KEY + '_theme', theme); } catch(_){}
+    });
+  });
+}
+
+function applyThemeSetting(theme) {
+  if (theme === 'system') {
+    const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', sys);
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
+
+function getStoredTheme() {
+  try { return localStorage.getItem(COURSE_KEY + '_theme') || 'system'; } catch(_){ return 'system'; }
+}
+
+// ══ Custom Video Player ══════════════════════════════════════════
+const VP_SPEEDS = [0.75, 1, 1.25, 1.5, 2];
+
+function vpFmt(s) {
+  s = Math.floor(s || 0);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function vpSavePos(k, t) { try { localStorage.setItem('vp_'+k, String(t)); } catch(_){} }
+function vpLoadPos(k) { try { return parseFloat(localStorage.getItem('vp_'+k))||0; } catch(_){ return 0; } }
+
+function initVideoPlayer(wrapper) {
+  const video = wrapper.querySelector('video');
+  if (!video) return;
+
+  wrapper.classList.add('vp-wrap');
+  const vpKey = (video.querySelector('source')?.src || video.src || '').split('/').pop().replace(/\?.*$/,'');
+  const origSources = [...video.querySelectorAll('source')].map(s => ({src: s.src, type: s.type}));
+  const origSrc = video.src;
+
+  wrapper.innerHTML = `
+    <video tabindex="-1"></video>
+    <div class="vp-overlay"><div class="vp-ripple" id="vpRipple"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+    <div class="vp-toast" id="vpToast"></div>
+    <div class="vp-controls">
+      <div class="vp-progress" id="vpProg">
+        <div class="vp-progress-buf" id="vpBuf"></div>
+        <div class="vp-progress-fill" id="vpFill"></div>
+        <div class="vp-progress-thumb" id="vpThumb"></div>
+        <div class="vp-time-tip" id="vpTip">0:00</div>
+      </div>
+      <div class="vp-row">
+        <button class="vp-btn" id="vpPlayBtn" title="Пауза/Воспроизведение (Пробел)">
+          <svg id="vpPlayIco" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="vp-btn" id="vpRewBtn" title="−10 сек (←)">
+          <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/><text x="12" y="20" font-size="6" text-anchor="middle" fill="currentColor" font-family="sans-serif">10</text></svg>
+        </button>
+        <button class="vp-btn" id="vpFwdBtn" title="+10 сек (→)">
+          <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/><text x="12" y="20" font-size="6" text-anchor="middle" fill="currentColor" font-family="sans-serif">10</text></svg>
+        </button>
+        <div class="vp-vol-wrap">
+          <button class="vp-btn" id="vpMuteBtn" title="Звук (M)">
+            <svg id="vpVolIco" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          </button>
+          <input class="vp-vol-slider" id="vpVol" type="range" min="0" max="1" step="0.05" value="1">
+        </div>
+        <span class="vp-time" id="vpTime">00:00 / 00:00</span>
+        <div class="vp-spacer"></div>
+        <div class="vp-speed-wrap">
+          <button class="vp-speed-btn" id="vpSpeedBtn">1x</button>
+          <div class="vp-speed-menu" id="vpSpeedMenu">
+            ${VP_SPEEDS.map(s=>`<div class="vp-speed-item${s===1?' selected':''}" data-spd="${s}">${s}x</div>`).join('')}
+          </div>
+        </div>
+        <button class="vp-btn" id="vpFsBtn" title="Полный экран (F)">
+          <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        </button>
+      </div>
+    </div>`;
+
+  const vid = wrapper.querySelector('video');
+  if (origSources.length) {
+    origSources.forEach(s => { const el = document.createElement('source'); el.src = s.src; el.type = s.type; vid.appendChild(el); });
+  } else if (origSrc) { vid.src = origSrc; }
+
+  const $ = id => wrapper.querySelector('#'+id);
+  const ripple=$('vpRipple'),toast=$('vpToast'),prog=$('vpProg'),buf=$('vpBuf'),
+        fill=$('vpFill'),thumb=$('vpThumb'),tip=$('vpTip'),playBtn=$('vpPlayBtn'),
+        playIco=$('vpPlayIco'),rewBtn=$('vpRewBtn'),fwdBtn=$('vpFwdBtn'),
+        muteBtn=$('vpMuteBtn'),volIco=$('vpVolIco'),volSlider=$('vpVol'),
+        timeEl=$('vpTime'),speedBtn=$('vpSpeedBtn'),speedMenu=$('vpSpeedMenu'),
+        fsBtn=$('vpFsBtn');
+
+  let toastTimer, uiTimer, scrubbing=false, curSpeed=1;
+
+  function showToast(msg) { toast.textContent=msg; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove('show'),1100); }
+  function showUI() { wrapper.classList.add('show-ui'); clearTimeout(uiTimer); uiTimer=setTimeout(()=>wrapper.classList.remove('show-ui'),2400); }
+  function showRipple(icon) { ripple.querySelector('svg').innerHTML=icon; ripple.classList.remove('show'); void ripple.offsetWidth; ripple.classList.add('show'); setTimeout(()=>ripple.classList.remove('show'),380); }
+
+  function updatePlayIcon() {
+    playIco.innerHTML = vid.paused ? '<path d="M8 5v14l11-7z"/>' : '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    wrapper.classList.toggle('paused', vid.paused);
+  }
+  function updateVolIcon() {
+    const m = vid.muted||vid.volume===0;
+    volIco.innerHTML = m
+      ? '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>'
+      : '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+  }
+  function updateProgress() {
+    if (!vid.duration) return;
+    const pct = vid.currentTime/vid.duration*100;
+    fill.style.width=pct+'%'; thumb.style.left=pct+'%';
+    timeEl.textContent=vpFmt(vid.currentTime)+' / '+vpFmt(vid.duration);
+    vpSavePos(vpKey,vid.currentTime);
+  }
+  function updateBuffer() {
+    if (!vid.duration||!vid.buffered.length) return;
+    buf.style.width=(vid.buffered.end(vid.buffered.length-1)/vid.duration*100)+'%';
+  }
+
+  vid.addEventListener('loadedmetadata',()=>{
+    const saved=vpLoadPos(vpKey);
+    if(saved>2&&saved<vid.duration-3){vid.currentTime=saved;showToast('Продолжаем с '+vpFmt(saved));}
+    updateProgress();
+  });
+  vid.addEventListener('timeupdate',updateProgress);
+  vid.addEventListener('progress',updateBuffer);
+  vid.addEventListener('play',updatePlayIcon);
+  vid.addEventListener('pause',updatePlayIcon);
+  vid.addEventListener('volumechange',updateVolIcon);
+
+  vid.addEventListener('click',()=>{
+    if(vid.paused){vid.play();showRipple('<path d="M8 5v14l11-7z"/>');}
+    else{vid.pause();showRipple('<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>');}
+    showUI();
+  });
+
+  playBtn.addEventListener('click',e=>{e.stopPropagation();vid.paused?vid.play():vid.pause();});
+  rewBtn.addEventListener('click',e=>{e.stopPropagation();vid.currentTime=Math.max(0,vid.currentTime-10);showToast('⏪ −10 сек');showUI();});
+  fwdBtn.addEventListener('click',e=>{e.stopPropagation();vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);showToast('⏩ +10 сек');showUI();});
+
+  muteBtn.addEventListener('click',e=>{
+    e.stopPropagation();
+    vid.muted=!vid.muted;
+    volSlider.value=vid.muted?0:(vid.volume||1);
+    if(!vid.muted&&!vid.volume)vid.volume=1;
+    showToast(vid.muted?'🔇 Звук выключен':'🔊 Звук включён');
+  });
+  volSlider.addEventListener('input',e=>{e.stopPropagation();vid.volume=parseFloat(volSlider.value);vid.muted=vid.volume===0;});
+
+  speedBtn.addEventListener('click',e=>{e.stopPropagation();speedMenu.classList.toggle('open');});
+  speedMenu.querySelectorAll('.vp-speed-item').forEach(item=>{
+    item.addEventListener('click',e=>{
+      e.stopPropagation();
+      curSpeed=parseFloat(item.dataset.spd);
+      vid.playbackRate=curSpeed;
+      speedBtn.textContent=curSpeed+'x';
+      speedMenu.querySelectorAll('.vp-speed-item').forEach(i=>i.classList.remove('selected'));
+      item.classList.add('selected');
+      speedMenu.classList.remove('open');
+      showToast('Скорость: '+curSpeed+'x');
+    });
+  });
+  document.addEventListener('click',()=>speedMenu.classList.remove('open'));
+
+  function seekTo(e) {
+    const r=prog.getBoundingClientRect();
+    vid.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(vid.duration||0);
+  }
+  prog.addEventListener('mousedown',e=>{scrubbing=true;seekTo(e);});
+  prog.addEventListener('mousemove',e=>{
+    const r=prog.getBoundingClientRect();
+    const pct=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    tip.textContent=vpFmt(pct*(vid.duration||0));
+    tip.style.left=(pct*100)+'%';
+    if(scrubbing)seekTo(e);
+  });
+  document.addEventListener('mouseup',()=>{scrubbing=false;});
+
+  fsBtn.addEventListener('click',e=>{e.stopPropagation();document.fullscreenElement?document.exitFullscreen?.():wrapper.requestFullscreen?.();});
+  wrapper.addEventListener('mousemove',showUI);
+
+  document.addEventListener('keydown',e=>{
+    const tag=document.activeElement?.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+    if(wrapper.getBoundingClientRect().width===0)return;
+    switch(e.key){
+      case ' ':case 'k':case 'K':
+        e.preventDefault();
+        if(vid.paused){vid.play();showToast('▶ Воспроизведение');}else{vid.pause();showToast('⏸ Пауза');}
+        showUI();break;
+      case 'ArrowLeft':e.preventDefault();vid.currentTime=Math.max(0,vid.currentTime-10);showToast('⏪ −10 сек');showUI();break;
+      case 'ArrowRight':e.preventDefault();vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);showToast('⏩ +10 сек');showUI();break;
+      case 'ArrowUp':e.preventDefault();vid.volume=Math.min(1,vid.volume+0.1);vid.muted=false;volSlider.value=vid.volume;showToast('🔊 '+Math.round(vid.volume*100)+'%');showUI();break;
+      case 'ArrowDown':e.preventDefault();vid.volume=Math.max(0,vid.volume-0.1);volSlider.value=vid.volume;showToast('🔉 '+Math.round(vid.volume*100)+'%');showUI();break;
+      case 'm':case 'M':vid.muted=!vid.muted;if(!vid.muted&&!vid.volume){vid.volume=1;volSlider.value=1;}showToast(vid.muted?'🔇 Звук выключен':'🔊 Звук включён');showUI();break;
+      case 'f':case 'F':document.fullscreenElement?document.exitFullscreen?.():wrapper.requestFullscreen?.();break;
+      case '>':{const si=VP_SPEEDS.indexOf(curSpeed);if(si<VP_SPEEDS.length-1){curSpeed=VP_SPEEDS[si+1];vid.playbackRate=curSpeed;speedBtn.textContent=curSpeed+'x';showToast('Скорость: '+curSpeed+'x');}}break;
+      case '<':{const si=VP_SPEEDS.indexOf(curSpeed);if(si>0){curSpeed=VP_SPEEDS[si-1];vid.playbackRate=curSpeed;speedBtn.textContent=curSpeed+'x';showToast('Скорость: '+curSpeed+'x');}}break;
     }
-    function renderLessonNode(node, nodeId, depth) {
-      const open = openLessons.has(nodeId);
-      const indent = depth * 14;
-      let stepsHtml = "";
-      if (open && node.steps && node.steps.length) {
-        stepsHtml = `<div class="lesson-steps">${node.steps.map((step,sIdx)=>{
-          const parts = nodeId.toString().split(".");
-          const lIdx = parseInt(parts[0]);
-          const a = (nodeId===currentLessonIdx.toString()||nodeId===currentLessonIdx)&&sIdx===currentStepIdx?"active":"";
-          const c = completedSteps.has(stepId(nodeId,sIdx))?"completed":"";
-          return `<button class="step-item ${a} ${c}" type="button" title="${escapeHtml(step.title)}" onclick="loadStepByNodeId('${nodeId}',${sIdx})"><span class="step-check">✔</span><span class="step-title">${escapeHtml(truncateTitle(step.title))}</span></button>`;
-        }).join("")}</div>`;
-      }
-      let childrenHtml = "";
-      if (open && node.children && node.children.length) {
-        childrenHtml = node.children.map((child,ci)=>renderLessonNode(child, nodeId+"."+ci, depth+1)).join("");
-      }
-      const hasContent = (node.steps&&node.steps.length)||(node.children&&node.children.length);
-      return `<section class="lesson" style="margin-left:${indent}px"><button class="lesson-header" onclick="toggleLessonNode('${nodeId}')" type="button"><span class="lesson-arrow">${open?"▼":"▶"}</span><span>${escapeHtml(node.lesson)}</span></button>${stepsHtml}${childrenHtml}</section>`;
-    }
-    function renderSidebar() {
-      const sidebar=document.getElementById("sidebar");
-      const body=sidebar.querySelector(".sidebar-body");
-      const scrollTop=body?body.scrollTop:0;
-      const icon=getCurrentTheme()==="dark"?"☀️":"🌙";
-      const html=courseData.map((lesson,lIdx)=>renderLessonNode(lesson, String(lIdx), 0)).join("");
-      sidebar.innerHTML=`<div class="sidebar-header"><h1 class="course-title">${escapeHtml(COURSE_TITLE)}</h1><div class="sidebar-meta"><div class="progress-text" id="progressText">Пройдено ${completedSteps.size}/${TOTAL_STEPS}</div><button class="theme-toggle" id="themeToggle" type="button" onclick="toggleTheme()">${icon}</button></div></div><div class="sidebar-body">${html}</div>`;
-      const newBody=sidebar.querySelector(".sidebar-body");
-      if(newBody) newBody.scrollTop=scrollTop;
-    }
-    function toggleLessonNode(nodeId) { if(openLessons.has(nodeId))openLessons.delete(nodeId);else openLessons.add(nodeId); renderSidebar(); scrollSidebarToActive(); }
-    function toggleLesson(lIdx) { toggleLessonNode(String(lIdx)); }
-    function loadStepByNodeId(nodeId, sIdx) {
-      // Find node in tree by dotted path e.g. "2.1.0"
-      const parts = nodeId.split(".").map(Number);
-      let node = courseData[parts[0]];
-      for (let i=1;i<parts.length;i++) node = node.children[parts[i]];
-      currentLessonIdx = nodeId; currentStepIdx = sIdx;
-      openLessons.add(nodeId);
-      writeJSON(COURSE_KEY+"_last_viewed",{l:nodeId,s:sIdx});
-      markStepCompleted(nodeId,sIdx);
-      renderSidebar();
-      const step = node.steps[sIdx];
-      const quizzes = Array.isArray(step.quizzes)?step.quizzes:[];
-      document.getElementById("contentWrap").innerHTML=`<div class="content-card"><h1 class="step-title-main">${escapeHtml(step.title)}</h1><div class="step-content">${step.html||""}</div>${renderQuizzes(quizzes,nodeId,sIdx)}<div class="nav-row"><button class="nav-btn" id="prevBtn" type="button" onclick="navigateFlat(-1)">← Предыдущий шаг</button><button class="nav-btn" id="nextBtn" type="button" onclick="navigateFlat(1)">Следующий шаг →</button></div></div>`;
-      quizzes.forEach((q,qi)=>{const k=quizKey(nodeId,sIdx,qi);if(Object.prototype.hasOwnProperty.call(savedQuizzes,k))applyAnswerUI(qi,Number(savedQuizzes[k]),Number(q.answer));});
-      updateNavButtons();document.getElementById("main").scrollTo({top:0,behavior:"smooth"});setTimeout(scrollSidebarToActive,200);
-    }
-    function renderQuizzes(quizzes,l,s) {
-      if(!quizzes||!quizzes.length)return"";
-      return `<section class="quiz-section"><div class="quiz-header"><h2 class="quiz-title">Проверь себя</h2><button class="quiz-reset" type="button" onclick="resetQuizzes('${l}',${s})">↻ Сбросить ответы</button></div><div class="quiz-list">${quizzes.map((q,qi)=>`<div class="quiz-card" data-quiz-index="${qi}"><p class="quiz-question">${escapeHtml(q.question)}</p><div class="quiz-options">${q.options.map((o,oi)=>`<label class="quiz-option" data-option-index="${oi}"><input type="radio" name="quiz_${l}_${s}_${qi}" value="${oi}" onchange="checkAnswer(${l},${s},${qi},${oi},${q.answer})"/><span>${escapeHtml(o)}</span></label>`).join("")}</div><div class="quiz-message"></div></div>`).join("")}</div></section>`;
-    }
-    function applyAnswerUI(qi,si,ci) {
-      const card=document.querySelector(`.quiz-card[data-quiz-index="${qi}"]`);
-      if(!card)return;
-      card.querySelectorAll(".quiz-option").forEach(o=>o.classList.remove("correct","incorrect"));
-      card.querySelectorAll('input[type="radio"]').forEach((r,i)=>{r.disabled=true;r.checked=i===si;});
-      card.classList.remove("correct","incorrect");
-      const msg=card.querySelector(".quiz-message");
-      if(si===ci){card.classList.add("correct");const s=card.querySelector(`.quiz-option[data-option-index="${si}"]`);if(s)s.classList.add("correct");if(msg)msg.textContent="Верно! Отличная работа.";}
-      else{card.classList.add("incorrect");const s=card.querySelector(`.quiz-option[data-option-index="${si}"]`);const c=card.querySelector(`.quiz-option[data-option-index="${ci}"]`);if(s)s.classList.add("incorrect");if(c)c.classList.add("correct");if(msg)msg.textContent="Ошибка. Правильный ответ подсвечен зеленым.";}
-    }
-    function checkAnswer(l,s,q,si,ci){savedQuizzes[quizKey(l,s,q)]=si;writeJSON(COURSE_KEY+"_quizzes",savedQuizzes);applyAnswerUI(q,si,ci);}
-    function resetQuizzes(l,s){const p=`${l}_${s}_`;Object.keys(savedQuizzes).forEach(k=>{if(k.startsWith(p))delete savedQuizzes[k];});writeJSON(COURSE_KEY+"_quizzes",savedQuizzes);loadStep(l,s);}
-    // Build flat list of all {nodeId, sIdx} for prev/next navigation
-    let _flatList = [];
-    function buildFlatList() {
-      _flatList = [];
-      function walk(node, nodeId) {
-        (node.steps||[]).forEach((_,sIdx)=>_flatList.push({nodeId, sIdx}));
-        (node.children||[]).forEach((child,ci)=>walk(child, nodeId+"."+ci));
-      }
-      courseData.forEach((lesson,i)=>walk(lesson, String(i)));
-    }
-    function getNodeByPath(nodeId) {
-      const parts = String(nodeId).split(".").map(Number);
-      let node = courseData[parts[0]];
-      for(let i=1;i<parts.length;i++) node = node && node.children[parts[i]];
-      return node||null;
-    }
-    function isValidStep(nodeId,sIdx) { const n=getNodeByPath(nodeId); return !!(n&&n.steps&&n.steps[sIdx]); }
-    function currentFlatIdx() { return _flatList.findIndex(x=>String(x.nodeId)===String(currentLessonIdx)&&x.sIdx===currentStepIdx); }
-    function updateNavButtons(){const p=document.getElementById("prevBtn");const n=document.getElementById("nextBtn");const f=currentFlatIdx();if(p)p.disabled=f<=0;if(n)n.disabled=f<0||f>=_flatList.length-1;}
-    function navigateFlat(dir){const f=currentFlatIdx();const nx=_flatList[f+dir];if(nx)loadStepByNodeId(nx.nodeId,nx.sIdx);}
-    function scrollSidebarToActive(){const a=document.querySelector(".step-item.active");if(a)a.scrollIntoView({behavior:"smooth",block:"nearest"});}
-    function loadStep(lIdx,sIdx){ loadStepByNodeId(String(lIdx),sIdx); }
-    function init(){
-      buildFlatList();
-      applyTheme(getInitialTheme());renderSidebar();
-      if(!courseData.length||!TOTAL_STEPS){document.getElementById("contentWrap").innerHTML=`<div class="empty-state">В курсе нет шагов для отображения.</div>`;return;}
-      const saved=readJSON(COURSE_KEY+"_last_viewed",null);
-      const nodeId=saved&&saved.l!=null?String(saved.l):"0";
-      const ss=saved&&Number.isInteger(saved.s)?saved.s:0;
-      if(isValidStep(nodeId,ss))loadStepByNodeId(nodeId,ss);
-      else if(_flatList.length)loadStepByNodeId(_flatList[0].nodeId,_flatList[0].sIdx);
-    }
-    init();
+  });
+}
+
+function initAllPlayers() {
+  document.querySelectorAll('.video-wrapper').forEach(w=>{
+    if(!w.dataset.vpInit){w.dataset.vpInit='1';initVideoPlayer(w);}
+  });
+}
+
+// ══ Course App ═══════════════════════════════════════════════════
+const b64Data = "__BASE64_DATA__";
+const courseData = JSON.parse(decodeURIComponent(escape(window.atob(b64Data))));
+const TOTAL_STEPS = __TOTAL_STEPS__;
+const COURSE_TITLE = "__COURSE_TITLE_JS__";
+
+let currentLessonIdx = 0, currentStepIdx = 0;
+const COURSE_KEY = "course_" + COURSE_TITLE.replace(/\s+/g,"_").replace(/[^\w\u0400-\u04FF]/g,"").slice(0,40);
+let completedSteps = new Set(readJSON(COURSE_KEY + "_progress", []));
+let savedQuizzes = readJSON(COURSE_KEY + "_quizzes", {});
+let openLessons = new Set(courseData.length ? ["0"] : []);
+
+// ── Utils ─────────────────────────────────────────────────────────
+function readJSON(k, fb) { try { const r=localStorage.getItem(k); return r?JSON.parse(r):fb; } catch(_){ return fb; } }
+function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(_){} }
+function escapeHtml(v) { return String(v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function truncateTitle(t) { return t.length>60?t.slice(0,57)+'...':t; }
+function stepId(l,s) { return `${l}-${s}`; }
+function quizKey(l,s,q) { return `${l}_${s}_${q}`; }
+function getNodeByPath(nodeId) {
+  const parts=String(nodeId).split('.').map(Number);
+  let node=courseData[parts[0]];
+  for(let i=1;i<parts.length;i++) node=node&&node.children[parts[i]];
+  return node||null;
+}
+function isValidStep(nodeId,sIdx) { const n=getNodeByPath(nodeId); return !!(n&&n.steps&&n.steps[sIdx]); }
+
+// ── Progress ──────────────────────────────────────────────────────
+function markStepCompleted(l,s) {
+  const id=stepId(l,s);
+  if(!completedSteps.has(id)){completedSteps.add(id);writeJSON(COURSE_KEY+"_progress",[...completedSteps]);}
+}
+function updateProgressUI() {
+  const pct = TOTAL_STEPS ? (completedSteps.size/TOTAL_STEPS*100) : 0;
+  const el = document.getElementById('progressText');
+  const bar = document.getElementById('progressFill');
+  if(el) el.textContent = `Пройдено ${completedSteps.size}/${TOTAL_STEPS}`;
+  if(bar) bar.style.width = pct+'%';
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────
+function renderLessonNode(node, nodeId, depth) {
+  const open = openLessons.has(nodeId);
+  const ml = depth * 12;
+  let stepsHtml = '';
+  if (open && node.steps && node.steps.length) {
+    stepsHtml = `<div class="lesson-steps">${node.steps.map((step,sIdx)=>{
+      const isActive = String(nodeId)===String(currentLessonIdx) && sIdx===currentStepIdx;
+      const isDone = completedSteps.has(stepId(nodeId,sIdx));
+      return `<button class="step-item ${isActive?'active':''} ${isDone?'completed':''}"
+        onclick="loadStepByNodeId('${nodeId}',${sIdx})"
+        title="${escapeHtml(step.title)}">
+        <span class="step-dot"></span>${escapeHtml(truncateTitle(step.title))}
+      </button>`;
+    }).join('')}</div>`;
+  }
+  let childrenHtml = '';
+  if (open && node.children && node.children.length) {
+    childrenHtml = node.children.map((c,ci)=>renderLessonNode(c,nodeId+'.'+ci,depth+1)).join('');
+  }
+  return `<section class="lesson" style="margin-left:${ml}px">
+    <button class="lesson-header" onclick="toggleLessonNode('${nodeId}')">
+      <svg class="lesson-arrow ${open?'open':''}" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5l8 7-8 7V5z"/>
+      </svg>
+      <span class="lesson-name">${escapeHtml(node.lesson)}</span>
+    </button>
+    ${stepsHtml}${childrenHtml}
+  </section>`;
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const body = sidebar?.querySelector('.sidebar-body');
+  const scrollTop = body ? body.scrollTop : 0;
+
+  const storedTheme = getStoredTheme();
+  const lessonsHtml = courseData.map((l,i)=>renderLessonNode(l,String(i),0)).join('');
+
+  sidebar.innerHTML = `
+    <div class="sidebar-header">
+      <h1 class="course-title">${escapeHtml(COURSE_TITLE)}</h1>
+      <div class="progress-row">
+        <span class="progress-text" id="progressText">Пройдено 0/${TOTAL_STEPS}</span>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+    <div class="sidebar-body">${lessonsHtml}</div>
+    <div class="sidebar-footer">
+      <button class="sidebar-settings-btn" id="settingsOpenBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Настройки
+      </button>
+    </div>`;
+
+  const newBody = sidebar.querySelector('.sidebar-body');
+  if (newBody) newBody.scrollTop = scrollTop;
+
+  updateProgressUI();
+  initSettings();
+}
+
+function toggleLessonNode(nodeId) {
+  openLessons.has(nodeId) ? openLessons.delete(nodeId) : openLessons.add(nodeId);
+  renderSidebar();
+}
+
+// ── Flat list for prev/next ───────────────────────────────────────
+let _flatList = [];
+function buildFlatList() {
+  _flatList = [];
+  function walk(node, nodeId) {
+    (node.steps||[]).forEach((_,sIdx)=>_flatList.push({nodeId,sIdx}));
+    (node.children||[]).forEach((c,ci)=>walk(c,nodeId+'.'+ci));
+  }
+  courseData.forEach((l,i)=>walk(l,String(i)));
+}
+function currentFlatIdx() { return _flatList.findIndex(x=>String(x.nodeId)===String(currentLessonIdx)&&x.sIdx===currentStepIdx); }
+function updateNavButtons() {
+  const f = currentFlatIdx();
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  if(prev) prev.disabled = f<=0;
+  if(next) next.disabled = f>=_flatList.length-1;
+}
+function navigateFlat(dir) {
+  const f=currentFlatIdx(), nx=_flatList[f+dir];
+  if(nx) loadStepByNodeId(nx.nodeId,nx.sIdx);
+}
+function scrollSidebarToActive() {
+  const a=document.querySelector('.step-item.active');
+  if(a) a.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── Load Step ─────────────────────────────────────────────────────
+function loadStepByNodeId(nodeId, sIdx) {
+  const node = getNodeByPath(nodeId);
+  if(!node||!node.steps||!node.steps[sIdx]) return;
+  currentLessonIdx=nodeId; currentStepIdx=sIdx;
+  openLessons.add(nodeId);
+  writeJSON(COURSE_KEY+'_last_viewed',{l:nodeId,s:sIdx});
+  markStepCompleted(nodeId,sIdx);
+  renderSidebar();
+
+  const step = node.steps[sIdx];
+  const quizzes = Array.isArray(step.quizzes)?step.quizzes:[];
+
+  document.getElementById('contentWrap').innerHTML = `
+    <div class="content-card">
+      <h1 class="step-title-main">${escapeHtml(step.title)}</h1>
+      <div class="step-content">${step.html||''}</div>
+      ${renderQuizzes(quizzes,nodeId,sIdx)}
+      <div class="nav-row">
+        <button id="prevBtn" class="nav-btn secondary" onclick="navigateFlat(-1)">← Назад</button>
+        <button id="nextBtn" class="nav-btn" onclick="navigateFlat(1)">Вперёд →</button>
+      </div>
+    </div>`;
+
+  quizzes.forEach((q,qi)=>{
+    const k=quizKey(nodeId,sIdx,qi);
+    if(Object.prototype.hasOwnProperty.call(savedQuizzes,k)) applyAnswerUI(qi,savedQuizzes[k],q.answer);
+  });
+
+  updateNavButtons();
+  document.getElementById('main')?.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(scrollSidebarToActive,200);
+  setTimeout(initAllPlayers,60);
+}
+
+// ── Quizzes ───────────────────────────────────────────────────────
+function renderQuizzes(quizzes,l,s) {
+  if(!quizzes||!quizzes.length) return '';
+  return `<section class="quiz-section">
+    <div class="quiz-header">
+      <h2 class="quiz-title">Проверь себя</h2>
+      <button class="quiz-reset" onclick="resetQuizzes('${l}',${s})">Сбросить</button>
+    </div>
+    <div class="quiz-list">${quizzes.map((q,qi)=>`
+      <div class="quiz-card" data-quiz-index="${qi}">
+        <p class="quiz-question">${escapeHtml(q.question)}</p>
+        <div class="quiz-options">${(q.options||[]).map((o,oi)=>`
+          <label class="quiz-option" data-option-index="${oi}">
+            <input type="radio" name="q_${l}_${s}_${qi}" onclick="checkAnswer('${l}',${s},${qi},${oi},${q.answer})">
+            ${escapeHtml(o)}
+          </label>`).join('')}
+        </div>
+        <p class="quiz-message"></p>
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
+function applyAnswerUI(qi,si,ci) {
+  const card=document.querySelector(`.quiz-card[data-quiz-index="${qi}"]`);
+  if(!card) return;
+  card.querySelectorAll('.quiz-option').forEach(o=>o.classList.remove('correct','incorrect'));
+  card.querySelectorAll('input[type="radio"]').forEach((r,i)=>{r.disabled=true;r.checked=i===si;});
+  card.classList.remove('correct','incorrect');
+  const msg=card.querySelector('.quiz-message');
+  if(si===ci){
+    card.classList.add('correct');
+    card.querySelector(`.quiz-option[data-option-index="${si}"]`)?.classList.add('correct');
+    if(msg)msg.textContent='✓ Правильно!';
+  } else {
+    card.classList.add('incorrect');
+    card.querySelector(`.quiz-option[data-option-index="${si}"]`)?.classList.add('incorrect');
+    card.querySelector(`.quiz-option[data-option-index="${ci}"]`)?.classList.add('correct');
+    if(msg)msg.textContent='✗ Неверно. Правильный ответ выделен.';
+  }
+}
+function checkAnswer(l,s,q,si,ci){savedQuizzes[quizKey(l,s,q)]=si;writeJSON(COURSE_KEY+'_quizzes',savedQuizzes);applyAnswerUI(q,si,ci);}
+function resetQuizzes(l,s){const p=`${l}_${s}_`;Object.keys(savedQuizzes).forEach(k=>{if(k.startsWith(p))delete savedQuizzes[k];});writeJSON(COURSE_KEY+'_quizzes',savedQuizzes);loadStepByNodeId(l,parseInt(s));}
+
+// ── Init ──────────────────────────────────────────────────────────
+function init() {
+  // Apply theme
+  const stored = getStoredTheme();
+  applyThemeSetting(stored);
+
+  buildFlatList();
+  renderSidebar();
+
+  if(!courseData.length||!TOTAL_STEPS){
+    document.getElementById('contentWrap').innerHTML='<div class="empty-state">В курсе нет шагов для отображения.</div>';
+    return;
+  }
+
+  const saved = readJSON(COURSE_KEY+'_last_viewed', null);
+  const nodeId = saved&&saved.l!=null ? String(saved.l) : '0';
+  const ss = saved&&Number.isInteger(saved.s) ? saved.s : 0;
+
+  if(isValidStep(nodeId,ss)) loadStepByNodeId(nodeId,ss);
+  else if(_flatList.length) loadStepByNodeId(_flatList[0].nodeId,_flatList[0].sIdx);
+}
+
+init();
+
   </script>
 </body>
 </html>
