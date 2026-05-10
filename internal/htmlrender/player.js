@@ -23,6 +23,26 @@ function initVideoPlayer(wrapper) {
   wrapper.innerHTML = `
     <video tabindex="-1"></video>
     <div class="vp-overlay"><div class="vp-ripple" id="vpRipple"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+    <div class="vp-end-overlay" id="vpEndOverlay">
+      <button class="vp-end-next" id="vpEndNextBtn" title="Следующий урок">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M6 18l8.5-6L6 6v12zm2.5-6 5.5 3.9V8.1L8.5 12zM16 6h2v12h-2z"/></svg>
+        <svg class="vp-end-ring" viewBox="0 0 44 44">
+          <circle class="vp-end-ring-bg" cx="22" cy="22" r="19"/>
+          <circle class="vp-end-ring-fill" id="vpEndRingFill" cx="22" cy="22" r="19"/>
+        </svg>
+      </button>
+      <div class="vp-end-info">
+        <button class="vp-end-label" id="vpEndLabel">Следующий урок</button>
+        <span class="vp-end-countdown" id="vpEndCountdown">откроется через 3...</span>
+      </div>
+      <label class="vp-end-auto">
+        <span class="vp-end-toggle-wrap">
+          <input type="checkbox" id="vpAutoNext" class="vp-end-toggle-input">
+          <span class="vp-end-toggle-track"><span class="vp-end-toggle-thumb"></span></span>
+        </span>
+        <span class="vp-end-auto-label" id="vpAutoLabel">Автопереход включён</span>
+      </label>
+    </div>
     <div class="vp-toast" id="vpToast"></div>
     <div class="vp-controls">
       <div class="vp-progress" id="vpProg">
@@ -32,8 +52,14 @@ function initVideoPlayer(wrapper) {
         <div class="vp-time-tip" id="vpTip">0:00</div>
       </div>
       <div class="vp-row">
+        <button class="vp-btn vp-step-btn" id="vpPrevStepBtn" title="Предыдущий урок (Shift+←)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
         <button class="vp-btn" id="vpPlayBtn" title="Пауза/Воспроизведение (Пробел)">
           <svg id="vpPlayIco" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="vp-btn vp-step-btn" id="vpNextStepBtn" title="Следующий урок (Shift+→)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2.5-6 5.5 3.9V8.1L8.5 12zM16 6h2v12h-2z"/></svg>
         </button>
         <button class="vp-btn" id="vpRewBtn" title="−10 сек (←)">
           <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/><text x="12" y="20" font-size="6" text-anchor="middle" fill="currentColor" font-family="sans-serif">10</text></svg>
@@ -72,7 +98,7 @@ function initVideoPlayer(wrapper) {
         playIco=$('vpPlayIco'),rewBtn=$('vpRewBtn'),fwdBtn=$('vpFwdBtn'),
         muteBtn=$('vpMuteBtn'),volIco=$('vpVolIco'),volSlider=$('vpVol'),
         timeEl=$('vpTime'),speedBtn=$('vpSpeedBtn'),speedMenu=$('vpSpeedMenu'),
-        fsBtn=$('vpFsBtn');
+        fsBtn=$('vpFsBtn'),prevStepBtn=$('vpPrevStepBtn'),nextStepBtn=$('vpNextStepBtn');
 
   let toastTimer, uiTimer, scrubbing=false, curSpeed=1;
 
@@ -114,6 +140,7 @@ function initVideoPlayer(wrapper) {
   vid.addEventListener('volumechange',updateVolIcon);
 
   vid.addEventListener('click',()=>{
+    if(endOverlay?.classList.contains('show')) return; // ignore clicks when end overlay is visible
     if(vid.paused){vid.play();showRipple('<path d="M8 5v14l11-7z"/>');}
     else{vid.pause();showRipple('<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>');}
     showUI();
@@ -162,6 +189,122 @@ function initVideoPlayer(wrapper) {
   document.addEventListener('mouseup',()=>{scrubbing=false;});
 
   fsBtn.addEventListener('click',e=>{e.stopPropagation();document.fullscreenElement?document.exitFullscreen?.():wrapper.requestFullscreen?.();});
+
+  function doStepNav(dir) {
+    if(typeof vpNavigateStep==='function') vpNavigateStep(dir, wrapper);
+  }
+
+  // ── End-of-video overlay ──────────────────────────────────────
+  const endOverlay = $('vpEndOverlay');
+  const endNextBtn = $('vpEndNextBtn');
+  const endLabel   = $('vpEndLabel');
+  const endCountdown = $('vpEndCountdown');
+  const autoToggle = $('vpAutoNext');
+  const autoLabel  = $('vpAutoLabel');
+  const ringFill   = $('vpEndRingFill');
+
+  const AUTO_KEY = 'vp_autonext';
+  let countdownTimer = null;
+  const COUNTDOWN = 3;
+  // circumference of circle r=19
+  const CIRC = 2 * Math.PI * 19;
+  const RING_DURATION_MS = COUNTDOWN * 1000;
+
+  function loadAutoNext() {
+    try { return localStorage.getItem(AUTO_KEY) !== 'off'; } catch(_){ return true; }
+  }
+  function saveAutoNext(v) { try { localStorage.setItem(AUTO_KEY, v ? 'on' : 'off'); } catch(_){} }
+
+  function hasNextStep() {
+    if(typeof _flatList === 'undefined') return false;
+    const f = typeof currentFlatIdx === 'function' ? currentFlatIdx() : -1;
+    return f >= 0 && f < _flatList.length - 1;
+  }
+
+  function showEndOverlay() {
+    if(!endOverlay || !hasNextStep()) return;
+    endOverlay.classList.add('show');
+    const auto = loadAutoNext();
+    autoToggle.checked = auto;
+    autoLabel.textContent = auto ? 'Автопереход включён' : 'Автопереход выключен';
+    // Reset ring to empty without transition, then animate via countdown
+    if(ringFill) {
+      ringFill.style.transition = 'none';
+      ringFill.style.strokeDasharray = CIRC;
+      ringFill.style.strokeDashoffset = CIRC;
+      // Force reflow so transition:none takes effect before we re-enable it
+      void ringFill.getBoundingClientRect();
+      ringFill.style.transition = 'stroke-dashoffset 1s linear';
+    }
+    if(auto) startCountdown();
+  }
+
+  function hideEndOverlay() {
+    endOverlay?.classList.remove('show');
+    clearCountdown();
+  }
+
+  function startCountdown() {
+    // Animate ring via CSS: set target offset=0 with transition=COUNTDOWN s
+    if(ringFill) {
+      ringFill.style.transition = `stroke-dashoffset ${RING_DURATION_MS}ms linear`;
+      ringFill.style.strokeDashoffset = '0';
+    }
+    // Update text countdown with setInterval every second
+    let remaining = COUNTDOWN;
+    updateCountdownText(remaining);
+    const textTimer = setInterval(() => {
+      remaining--;
+      updateCountdownText(remaining);
+    }, 1000);
+    // Navigate exactly when animation ends
+    countdownTimer = setTimeout(() => {
+      clearInterval(textTimer);
+      doStepNav(1);
+    }, RING_DURATION_MS);
+  }
+
+  function updateCountdownText(rem) {
+    if(endCountdown) endCountdown.textContent = rem > 0 ? `откроется через ${rem}...` : '';
+  }
+
+  function updateCountdownUI(rem) { updateCountdownText(rem); }
+
+  function clearCountdown() {
+    clearTimeout(countdownTimer);
+    countdownTimer = null;
+    // Also stop ring animation mid-way
+    if(ringFill) {
+      const computed = window.getComputedStyle(ringFill).strokeDashoffset;
+      ringFill.style.transition = 'none';
+      ringFill.style.strokeDashoffset = computed;
+    }
+  }
+
+  if(endNextBtn) endNextBtn.addEventListener('click', e => { e.stopPropagation(); hideEndOverlay(); doStepNav(1); });
+  if(endLabel)   endLabel.addEventListener('click',   e => { e.stopPropagation(); hideEndOverlay(); doStepNav(1); });
+  // Click on overlay background → cancel autoplay, hide overlay
+  if(endOverlay) endOverlay.addEventListener('click', e => {
+    if(e.target === endOverlay) { clearCountdown(); hideEndOverlay(); }
+  });
+
+  if(autoToggle) autoToggle.addEventListener('change', () => {
+    const on = autoToggle.checked;
+    saveAutoNext(on);
+    autoLabel.textContent = on ? 'Автопереход включён' : 'Автопереход выключен';
+    if(on) startCountdown(); else clearCountdown();
+  });
+
+  vid.addEventListener('ended', () => { showEndOverlay(); });
+  vid.addEventListener('play',  () => { hideEndOverlay(); });
+
+  wrapper.addEventListener('vp-step-changed', e => {
+    showToast('▶ ' + (e.detail.title||''));
+    showUI();
+    updatePlayIcon();
+  });
+  if(prevStepBtn) prevStepBtn.addEventListener('click',e=>{e.stopPropagation();doStepNav(-1);});
+  if(nextStepBtn) nextStepBtn.addEventListener('click',e=>{e.stopPropagation();doStepNav(1);});
   wrapper.addEventListener('mousemove',showUI);
 
   document.addEventListener('keydown',e=>{
@@ -173,8 +316,8 @@ function initVideoPlayer(wrapper) {
         e.preventDefault();
         if(vid.paused){vid.play();showToast('▶ Воспроизведение');}else{vid.pause();showToast('⏸ Пауза');}
         showUI();break;
-      case 'ArrowLeft':e.preventDefault();vid.currentTime=Math.max(0,vid.currentTime-10);showToast('⏪ −10 сек');showUI();break;
-      case 'ArrowRight':e.preventDefault();vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);showToast('⏩ +10 сек');showUI();break;
+      case 'ArrowLeft':if(e.shiftKey){e.preventDefault();doStepNav(-1);}else{e.preventDefault();vid.currentTime=Math.max(0,vid.currentTime-10);showToast('⏪ −10 сек');}showUI();break;
+      case 'ArrowRight':if(e.shiftKey){e.preventDefault();doStepNav(1);}else{e.preventDefault();vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);showToast('⏩ +10 сек');}showUI();break;
       case 'ArrowUp':e.preventDefault();vid.volume=Math.min(1,vid.volume+0.1);vid.muted=false;volSlider.value=vid.volume;showToast('🔊 '+Math.round(vid.volume*100)+'%');showUI();break;
       case 'ArrowDown':e.preventDefault();vid.volume=Math.max(0,vid.volume-0.1);volSlider.value=vid.volume;showToast('🔉 '+Math.round(vid.volume*100)+'%');showUI();break;
       case 'm':case 'M':vid.muted=!vid.muted;if(!vid.muted&&!vid.volume){vid.volume=1;volSlider.value=1;}showToast(vid.muted?'🔇 Звук выключен':'🔊 Звук включён');showUI();break;

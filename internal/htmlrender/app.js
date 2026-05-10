@@ -127,6 +127,69 @@ function navigateFlat(dir) {
   const f=currentFlatIdx(), nx=_flatList[f+dir];
   if(nx) loadStepByNodeId(nx.nodeId,nx.sIdx);
 }
+
+// ── In-player step navigation (fullscreen-aware) ──────────────────
+function vpNavigateStep(dir, currentWrapper) {
+  const f = currentFlatIdx();
+  const nxEntry = _flatList[f + dir];
+  if (!nxEntry) return;
+
+  const isFS = !!document.fullscreenElement;
+
+  if (!isFS) {
+    navigateFlat(dir);
+    return;
+  }
+
+  // In fullscreen: check if next step has a video
+  const nxNode = getNodeByPath(nxEntry.nodeId);
+  if (!nxNode || !nxNode.steps || !nxNode.steps[nxEntry.sIdx]) return;
+  const nxStep = nxNode.steps[nxEntry.sIdx];
+
+  // Parse next step HTML to find video src
+  const tmp = document.createElement('div');
+  tmp.innerHTML = nxStep.html || '';
+  const nxVideo = tmp.querySelector('video');
+  const nxSource = nxVideo ? (nxVideo.querySelector('source')?.src || nxVideo.src || '') : '';
+
+  if (!nxSource) {
+    // Next step has no video — exit fullscreen then navigate normally
+    document.exitFullscreen?.().then(() => navigateFlat(dir)).catch(() => navigateFlat(dir));
+    return;
+  }
+
+  // Next step HAS video — swap src without leaving fullscreen
+  const vid = currentWrapper ? currentWrapper.querySelector('video') : null;
+  if (!vid) { navigateFlat(dir); return; }
+
+  // Update global state
+  currentLessonIdx = nxEntry.nodeId;
+  currentStepIdx = nxEntry.sIdx;
+  writeJSON(COURSE_KEY + '_last_viewed', {l: nxEntry.nodeId, s: nxEntry.sIdx});
+  markStepCompleted(nxEntry.nodeId, nxEntry.sIdx);
+
+  // Swap video source — always start from beginning (fix bug 1)
+  vid.pause();
+  while (vid.firstChild) vid.removeChild(vid.firstChild);
+  const srcEl = nxVideo.querySelector('source');
+  const src = document.createElement('source');
+  src.src = srcEl ? srcEl.getAttribute('src') : nxVideo.getAttribute('src');
+  src.type = srcEl ? (srcEl.type || 'video/mp4') : 'video/mp4';
+  vid.appendChild(src);
+  vid.currentTime = 0;
+  vid.load();
+  vid.play().catch(()=>{});
+
+  // Update sidebar to highlight correct lesson tab (fix bug 2)
+  openLessons.add(String(nxEntry.nodeId));
+  renderSidebar();
+  updateNavButtons();
+  setTimeout(scrollSidebarToActive, 200);
+
+  // Fire event so player can show toast with new title
+  currentWrapper.dispatchEvent(new CustomEvent('vp-step-changed', {detail: {title: nxStep.title}}));
+}
+
 function scrollSidebarToActive() {
   const a=document.querySelector('.step-item.active');
   if(a) a.scrollIntoView({behavior:'smooth',block:'nearest'});
