@@ -1,6 +1,30 @@
-# course-builder
+# Course builder
+Если у вас есть курс с видео и docx, то это приложение создаст для вас единый автономный HTML-курс.  
+Нулевые внешние зависимости — итогом является один `.html` файл, который работает без интернета.
 
-Go-порт оригинального Python-скрипта. Конвертирует папку с `.docx` и видеофайлами в единый интерактивный HTML-курс. Нулевые внешние зависимости.
+---
+
+## Установка
+
+### macOS / Linux
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/insigmo/course_builder/refs/heads/master/install.sh | sh
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/insigmo/course_builder/refs/heads/master/install.ps1 | iex
+```
+
+### Сборка из исходников через go
+
+```bash
+go install github.com/user/course-builder/cmd/course-builder
+```
+
+---
 
 ## Использование
 
@@ -8,47 +32,17 @@ Go-порт оригинального Python-скрипта. Конвертир
 course-builder ./МойКурс
 ```
 
-Рядом с бинарником создастся `МойКурс.html`.
+Внутри папки создаётся файл `МойКурс.html`.
 
-## Сборка
-
-```bash
-go build -o course-builder ./cmd/course-builder
-```
-
-## Релиз через GitHub Actions
-
-```bash
-git tag v1.0.0
-git push --tags
-```
-
-Actions автоматически собирает бинарники для всех платформ и публикует их в Releases.
+---
 
 ## Поддерживаемые платформы
 
-| OS      | Arch  |
-|---------|-------|
-| Linux   | amd64 |
-| Linux   | arm64 |
-| macOS   | amd64 |
+| OS      | Arch                  |
+|---------|-----------------------|
+| Linux   | amd64                 |
+| Linux   | arm64                 |
+| macOS   | amd64                 |
 | macOS   | arm64 (Apple Silicon) |
-| Windows | amd64 |
-| Windows | arm64 |
-
-## Структура
-
-```
-course-builder/
-├── cmd/course-builder/main.go
-├── internal/
-│   ├── config/config.go          ← константы
-│   ├── prefix/prefix.go          ← детект/удаление [X] префиксов
-│   ├── docx/parser.go            ← парсинг .docx → HTML (stdlib zip+xml)
-│   ├── video/converter.go        ← конвертация через ffmpeg
-│   ├── builder/builder.go        ← рекурсивный сбор уроков/шагов
-│   ├── builder/sort.go           ← числово-алфа сортировка
-│   └── htmlrender/render.go      ← финальный HTML (//go:embed)
-├── .github/workflows/release.yml
-└── go.mod
-```
+| Windows | amd64                 |
+| Windows | arm64                 |
