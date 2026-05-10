@@ -15,26 +15,28 @@ import (
 	"github.com/insigmo/course_builder/internal/video"
 )
 
-// Step is one course step (video and/or text).
+// Step is one course step — contains a title, optional HTML body, and optional quizzes.
 type Step struct {
 	Title   string      `json:"title"`
 	HTML    string      `json:"html"`
 	Quizzes []docx.Quiz `json:"quizzes"`
 }
 
-// LessonNode is a recursive lesson tree node.
+// LessonNode is a node in the recursive lesson tree.
 type LessonNode struct {
 	Lesson   string       `json:"lesson"`
 	Steps    []Step       `json:"steps"`
 	Children []LessonNode `json:"children"`
 }
 
-// Stats tracks build statistics.
+// Stats accumulates build counters printed at the end.
 type Stats struct {
 	Lessons, Steps, TextSteps, VideoSteps, Videos, Quizzes int
 }
 
-// Run is the main entry point.
+var safeRE = regexp.MustCompile(`[<>:"/\\|?*]+`)
+
+// Run is the main entry point: scans rootDir and writes a self-contained HTML course.
 func Run(rootDir string, cfg *config.Config) error {
 	exePath, _ := os.Executable()
 	outputPath := filepath.Join(rootDir, safeFilename(filepath.Base(rootDir))+".html")
@@ -42,11 +44,11 @@ func Run(rootDir string, cfg *config.Config) error {
 	allNames := gatherAllNames(rootDir)
 	removable := prefix.DetectRepeated(allNames)
 	if len(removable) > 0 {
-		var keys []string
+		keys := make([]string, 0, len(removable))
 		for k := range removable {
 			keys = append(keys, k)
 		}
-		fmt.Printf("\U0001f50d Повторяющиеся префиксы (удалены из заголовков): %s\n", strings.Join(keys, ", "))
+		fmt.Printf("🔍 Повторяющиеся префиксы (удалены из заголовков): %s\n", strings.Join(keys, ", "))
 	}
 
 	deleteJunk(rootDir, cfg)
@@ -77,22 +79,21 @@ func Run(rootDir string, cfg *config.Config) error {
 	}
 
 	fi, _ := os.Stat(outputPath)
-	fmt.Println("\u2705 Курс успешно собран!")
-	fmt.Printf("  \U0001f4c1 Глав:   %d\n", stats.Lessons)
-	fmt.Printf("  \U0001f4c4 Шагов:  %d (текстовых: %d, видео: %d)\n", stats.Steps, stats.TextSteps, stats.VideoSteps)
-	fmt.Printf("  \U0001f9e9 Тестов: %d\n", stats.Quizzes)
+	fmt.Println("✅ Курс успешно собран!")
+	fmt.Printf("  📁 Глав:   %d\n", stats.Lessons)
+	fmt.Printf("  📄 Шагов:  %d (текстовых: %d, видео: %d)\n", stats.Steps, stats.TextSteps, stats.VideoSteps)
+	fmt.Printf("  🧩 Тестов: %d\n", stats.Quizzes)
 	if fi != nil {
-		fmt.Printf("  \U0001f4e6 Размер: %s\n", prettySize(fi.Size()))
+		fmt.Printf("  📦 Размер: %s\n", prettySize(fi.Size()))
 	}
-	fmt.Printf("  \U0001f4be Файл:   %s\n", outputPath)
+	fmt.Printf("  💾 Файл:   %s\n", outputPath)
 	return nil
 }
 
 func buildCourse(rootDir, outputHTML, exePath string, cfg *config.Config, removable map[string]struct{}, stats *Stats) ([]LessonNode, error) {
 	var lessons []LessonNode
 
-	rootFiles := validFiles(rootDir, exePath, outputHTML, cfg, removable)
-	if len(rootFiles) > 0 {
+	if rootFiles := validFiles(rootDir, exePath, outputHTML, cfg, removable); len(rootFiles) > 0 {
 		intro, err := stepsFromFiles(rootFiles, outputHTML, cfg, removable, stats)
 		if err != nil {
 			return nil, err
@@ -119,9 +120,8 @@ func buildCourse(rootDir, outputHTML, exePath string, cfg *config.Config, remova
 func lessonNode(folder, outputHTML, exePath string, cfg *config.Config, removable map[string]struct{}, stats *Stats) (*LessonNode, error) {
 	name := prefix.CleanTitle(filepath.Base(folder), removable, cfg.KnownExts)
 
-	files := validFiles(folder, exePath, outputHTML, cfg, removable)
 	var steps []Step
-	if len(files) > 0 {
+	if files := validFiles(folder, exePath, outputHTML, cfg, removable); len(files) > 0 {
 		var err error
 		steps, err = stepsFromFiles(files, outputHTML, cfg, removable, stats)
 		if err != nil {
@@ -152,7 +152,7 @@ type fileGroup struct {
 }
 
 func stepsFromFiles(files []string, outputHTML string, cfg *config.Config, removable map[string]struct{}, stats *Stats) ([]Step, error) {
-	groupOrder := []string{}
+	var groupOrder []string
 	groups := map[string]*fileGroup{}
 
 	for _, f := range files {
@@ -187,22 +187,22 @@ func stepsFromFiles(files []string, outputHTML string, cfg *config.Config, remov
 		SortNames(vn, removable)
 		g.videoFiles = rebuildPaths(dir, vn)
 
-		var docxHTMLParts []string
-		var docxQuizzes []docx.Quiz
+		var htmlParts []string
+		var quizzes []docx.Quiz
 		for _, d := range g.docxFiles {
 			res, err := docx.Parse(d)
 			if err != nil {
-				fmt.Printf("\u26a0\ufe0f  Пропущен DOCX %s: %v\n", filepath.Base(d), err)
+				fmt.Printf("⚠️  Пропущен DOCX %s: %v\n", filepath.Base(d), err)
 				continue
 			}
 			if res.HTML != "" {
-				docxHTMLParts = append(docxHTMLParts, res.HTML)
+				htmlParts = append(htmlParts, res.HTML)
 			}
-			docxQuizzes = append(docxQuizzes, res.Quizzes...)
+			quizzes = append(quizzes, res.Quizzes...)
 		}
 
 		if len(g.videoFiles) == 0 {
-			if len(docxHTMLParts) == 0 && len(docxQuizzes) == 0 {
+			if len(htmlParts) == 0 && len(quizzes) == 0 {
 				continue
 			}
 			title := ""
@@ -211,50 +211,50 @@ func stepsFromFiles(files []string, outputHTML string, cfg *config.Config, remov
 			}
 			steps = append(steps, Step{
 				Title:   title,
-				HTML:    strings.Join(docxHTMLParts, "\n"),
-				Quizzes: docxQuizzes,
+				HTML:    strings.Join(htmlParts, "\n"),
+				Quizzes: quizzes,
 			})
 			stats.Steps++
 			stats.TextSteps++
-			stats.Quizzes += len(docxQuizzes)
-		} else {
-			for i, vPath := range g.videoFiles {
-				actualPath := vPath
-				ext := strings.ToLower(filepath.Ext(vPath))
-				if ext != ".mp4" {
-					converted, err := video.ConvertToMP4(vPath)
-					if err != nil {
-						fmt.Printf("\u26a0\ufe0f  Конвертация %s: %v\n", filepath.Base(vPath), err)
-					} else {
-						fmt.Printf("  \U0001f504 %s \u2192 %s\n", filepath.Base(vPath), filepath.Base(converted))
-						actualPath = converted
-					}
-				}
-				relPath, _ := filepath.Rel(filepath.Dir(outputHTML), actualPath)
-				vHTML := video.Tag(relPath, strings.ToLower(filepath.Ext(actualPath)))
-
-				var htmlParts []string
-				htmlParts = append(htmlParts, vHTML)
-				var quizzes []docx.Quiz
-				if i == 0 {
-					htmlParts = append(htmlParts, docxHTMLParts...)
-					quizzes = docxQuizzes
-				}
-				title := prefix.CleanTitle(filepath.Base(vPath), removable, cfg.KnownExts)
-				steps = append(steps, Step{
-					Title:   title,
-					HTML:    strings.Join(htmlParts, "\n"),
-					Quizzes: quizzes,
-				})
-				stats.Steps++
-				stats.VideoSteps++
-				stats.Videos++
-			}
-			if len(g.docxFiles) > 0 {
-				stats.TextSteps++
-			}
-			stats.Quizzes += len(docxQuizzes)
+			stats.Quizzes += len(quizzes)
+			continue
 		}
+
+		for i, vPath := range g.videoFiles {
+			actualPath := vPath
+			if ext := strings.ToLower(filepath.Ext(vPath)); ext != ".mp4" {
+				converted, err := video.ConvertToMP4(vPath)
+				if err != nil {
+					fmt.Printf("⚠️  Конвертация %s: %v\n", filepath.Base(vPath), err)
+				} else {
+					fmt.Printf("  🔄 %s → %s\n", filepath.Base(vPath), filepath.Base(converted))
+					actualPath = converted
+				}
+			}
+			relPath, _ := filepath.Rel(filepath.Dir(outputHTML), actualPath)
+			vHTML := video.Tag(relPath, strings.ToLower(filepath.Ext(actualPath)))
+
+			var stepHTML []string
+			stepHTML = append(stepHTML, vHTML)
+			var stepQuizzes []docx.Quiz
+			if i == 0 {
+				stepHTML = append(stepHTML, htmlParts...)
+				stepQuizzes = quizzes
+			}
+
+			steps = append(steps, Step{
+				Title:   prefix.CleanTitle(filepath.Base(vPath), removable, cfg.KnownExts),
+				HTML:    strings.Join(stepHTML, "\n"),
+				Quizzes: stepQuizzes,
+			})
+			stats.Steps++
+			stats.VideoSteps++
+			stats.Videos++
+		}
+		if len(g.docxFiles) > 0 {
+			stats.TextSteps++
+		}
+		stats.Quizzes += len(quizzes)
 	}
 	return steps, nil
 }
@@ -322,11 +322,12 @@ func groupKey(name string, removable map[string]struct{}) string {
 
 func deleteJunk(rootDir string, cfg *config.Config) {
 	_ = filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, _ error) error {
-		if d != nil && !d.IsDir() {
-			if _, ok := cfg.FilesToRemove[strings.ToLower(d.Name())]; ok {
-				if err := os.Remove(path); err == nil {
-					fmt.Printf("\U0001f5d1\ufe0f  Удалён: %s\n", d.Name())
-				}
+		if d == nil || d.IsDir() {
+			return nil
+		}
+		if _, ok := cfg.FilesToRemove[strings.ToLower(d.Name())]; ok {
+			if err := os.Remove(path); err == nil {
+				fmt.Printf("🗑️  Удалён: %s\n", d.Name())
 			}
 		}
 		return nil
@@ -348,8 +349,6 @@ func rebuildPaths(dir string, names []string) []string {
 	}
 	return result
 }
-
-var safeRE = regexp.MustCompile(`[<>:"/\\|?*]+`)
 
 func safeFilename(name string) string {
 	name = strings.TrimSpace(name)

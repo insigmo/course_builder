@@ -1,5 +1,3 @@
-// internal/builder/sort.go
-
 package builder
 
 import (
@@ -15,7 +13,7 @@ import (
 var numRE = regexp.MustCompile(`\d+`)
 
 type sortKey struct {
-	hasNum bool // элементы с числом идут раньше
+	hasNum bool
 	num    int
 	text   string
 }
@@ -39,7 +37,7 @@ func makeSortKey(name string, removable map[string]struct{}) sortKey {
 	return sortKey{hasNum: hasNum, num: num, text: string(runes)}
 }
 
-// SortNames sorts filenames: numbered entries first (by number), then unnumbered (alphabetically).
+// SortNames sorts filenames: numbered entries first (by number), then unnumbered alphabetically.
 func SortNames(names []string, removable map[string]struct{}) {
 	type item struct {
 		key  sortKey
@@ -51,15 +49,12 @@ func SortNames(names []string, removable map[string]struct{}) {
 	}
 	sort.SliceStable(items, func(i, j int) bool {
 		a, b := items[i].key, items[j].key
-		// числовые — впереди
 		if a.hasNum != b.hasNum {
 			return a.hasNum
 		}
-		// оба числовые — по номеру
 		if a.hasNum && a.num != b.num {
 			return a.num < b.num
 		}
-		// оба ненумерованные или одинаковый номер — алфавитно
 		return a.text < b.text
 	})
 	for i, it := range items {

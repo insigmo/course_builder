@@ -22,7 +22,7 @@ type Result struct {
 	Quizzes []Quiz
 }
 
-// ── Minimal OOXML structs ─────────────────────────────────────────
+// ── minimal OOXML structs ─────────────────────────────────────────
 
 type wDoc struct {
 	Body struct {
@@ -80,18 +80,19 @@ func Parse(path string) (Result, error) {
 
 	var xmlData []byte
 	for _, f := range zr.File {
-		if f.Name == "word/document.xml" {
-			rc, err := f.Open()
-			if err != nil {
-				return Result{}, fmt.Errorf("open document.xml: %w", err)
-			}
-			xmlData, err = io.ReadAll(rc)
-			rc.Close()
-			if err != nil {
-				return Result{}, fmt.Errorf("read document.xml: %w", err)
-			}
-			break
+		if f.Name != "word/document.xml" {
+			continue
 		}
+		rc, err := f.Open()
+		if err != nil {
+			return Result{}, fmt.Errorf("open document.xml: %w", err)
+		}
+		xmlData, err = io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			return Result{}, fmt.Errorf("read document.xml: %w", err)
+		}
+		break
 	}
 	if xmlData == nil {
 		return Result{}, fmt.Errorf("word/document.xml not found in %s", path)
@@ -138,8 +139,7 @@ func convert(elems []wElem) Result {
 			if strings.HasPrefix(raw, "??") {
 				closeList()
 				finalizeQ()
-				q := &Quiz{Question: strings.TrimSpace(raw[2:])}
-				curQ = q
+				curQ = &Quiz{Question: strings.TrimSpace(raw[2:])}
 				continue
 			}
 
@@ -176,8 +176,7 @@ func convert(elems []wElem) Result {
 			}
 
 			closeList()
-			inner := innerHTML(el)
-			if strings.TrimSpace(inner) != "" {
+			if inner := innerHTML(el); strings.TrimSpace(inner) != "" {
 				parts = append(parts, "<p>"+inner+"</p>")
 			}
 
