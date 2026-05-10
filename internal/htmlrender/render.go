@@ -48,5 +48,8 @@ func jsEscape(s string) string {
 	s = strings.ReplaceAll(s, `\`, `\\`)
 	s = strings.ReplaceAll(s, `"`, `\"`)
 	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "<", `\u003c`)
+	s = strings.ReplaceAll(s, ">", `\u003e`)
+	s = strings.ReplaceAll(s, "&", `\u0026`)
 	return s
 }
