@@ -12,6 +12,18 @@ import (
 //go:embed template.html
 var templateHTML string
 
+//go:embed style.css
+var styleCSS string
+
+//go:embed app.js
+var appJS string
+
+//go:embed player.js
+var playerJS string
+
+//go:embed settings.js
+var settingsJS string
+
 // Render injects course data into the HTML template and returns the final HTML.
 func Render(title string, lessons interface{}, totalSteps int) (string, error) {
 	jsonBytes, err := json.Marshal(lessons)
@@ -21,6 +33,10 @@ func Render(title string, lessons interface{}, totalSteps int) (string, error) {
 	b64 := base64.StdEncoding.EncodeToString(jsonBytes)
 
 	out := templateHTML
+	out = strings.ReplaceAll(out, "STYLE_PLACEHOLDER", styleCSS)
+	out = strings.ReplaceAll(out, "APP_JS_PLACEHOLDER", appJS)
+	out = strings.ReplaceAll(out, "PLAYER_JS_PLACEHOLDER", playerJS)
+	out = strings.ReplaceAll(out, "SETTINGS_JS_PLACEHOLDER", settingsJS)
 	out = strings.ReplaceAll(out, "__BASE64_DATA__", b64)
 	out = strings.ReplaceAll(out, "__TOTAL_STEPS__", fmt.Sprintf("%d", totalSteps))
 	out = strings.ReplaceAll(out, "__COURSE_TITLE__", html.EscapeString(title))

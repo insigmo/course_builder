@@ -25,6 +25,9 @@ func DefaultConfig() *Config {
 		FilesToRemove: setOf(
 			"[www.sw.band] прочти перед изучением!.docx",
 			"прочти перед изучением!.docx",
+			"Качай БЕСПЛАТНО курсы в нашем Telegram!.pdf",
+			"Доступ к 200000 курсов на Sliwbl.Com.url",
+			"Курсы SkillBox, Otus, GeekBrains, Вердикт, Маркарян и др..url",
 		),
 		VideoExts:   setOf(".mp4", ".webm", ".mkv", ".avi", ".mov", ".ts"),
 		IgnoreExts:  setOf(".url", ".lnk"),

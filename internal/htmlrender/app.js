@@ -73,8 +73,6 @@ function renderSidebar() {
   const sidebar = document.getElementById('sidebar');
   const body = sidebar?.querySelector('.sidebar-body');
   const scrollTop = body ? body.scrollTop : 0;
-
-  const storedTheme = getStoredTheme();
   const lessonsHtml = courseData.map((l,i)=>renderLessonNode(l,String(i),0)).join('');
 
   sidebar.innerHTML = `
@@ -214,7 +212,6 @@ function resetQuizzes(l,s){const p=`${l}_${s}_`;Object.keys(savedQuizzes).forEac
 
 // ── Init ──────────────────────────────────────────────────────────
 function init() {
-  // Apply theme
   const stored = getStoredTheme();
   applyThemeSetting(stored);
 

@@ -60,7 +60,11 @@ func Strip(name string, removable map[string]struct{}) string {
 	return strings.TrimSpace(s)
 }
 
+// pureNumRE matches strings that are purely numeric (after stripping).
+var pureNumRE = regexp.MustCompile(`^\d+$`)
+
 // CleanTitle strips prefixes and known extension, returning a display title.
+// If the result is a bare number (e.g. "1", "42"), appends " урок".
 func CleanTitle(name string, removable map[string]struct{}, knownExts map[string]struct{}) string {
 	s := Strip(name, removable)
 	dot := strings.LastIndex(s, ".")
@@ -70,5 +74,9 @@ func CleanTitle(name string, removable map[string]struct{}, knownExts map[string
 			s = s[:dot]
 		}
 	}
-	return strings.TrimSpace(s)
+	s = strings.TrimSpace(s)
+	if pureNumRE.MatchString(s) {
+		s = s + " урок"
+	}
+	return s
 }
