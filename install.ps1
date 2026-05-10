@@ -1,13 +1,13 @@
 # install.ps1 — installs the latest course-builder binary on Windows
 # Usage (run in PowerShell as Administrator):
-#   irm https://raw.githubusercontent.com/insigmo/course-builder/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/insigmo/course_builder/main/install.ps1 | iex
 
 param(
   [string]$InstallDir = "$env:LOCALAPPDATA\Programs\course-builder"
 )
 
 $ErrorActionPreference = "Stop"
-$Repo = "insigmo/course-builder"
+$Repo = "insigmo/course_builder"
 $Binary = "course-builder"
 
 # Detect architecture

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/user/course-builder/internal/prefix"
+	"github.com/insigmo/course_builder/internal/prefix"
 )
 
 var numRE = regexp.MustCompile(`\d+`)

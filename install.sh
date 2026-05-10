@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 # install.sh — installs the latest course-builder binary
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/insigmo/course-builder/main/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/insigmo/course-builder/main/install.sh | sh -s -- --dir /usr/local/bin
+#   curl -fsSL https://raw.githubusercontent.com/insigmo/course_builder/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/insigmo/course_builder/main/install.sh | sh -s -- --dir /usr/local/bin
 
 set -e
 
-REPO="insigmo/course-builder"
+REPO="insigmo/course_builder"
 BINARY="course-builder"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 

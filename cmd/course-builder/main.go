@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/user/course-builder/internal/builder"
-	"github.com/user/course-builder/internal/config"
+	"github.com/insigmo/course_builder/internal/builder"
+	"github.com/insigmo/course_builder/internal/config"
 )
 
 var Version = "dev"

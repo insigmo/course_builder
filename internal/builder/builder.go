@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/user/course-builder/internal/config"
-	"github.com/user/course-builder/internal/docx"
-	"github.com/user/course-builder/internal/htmlrender"
-	"github.com/user/course-builder/internal/prefix"
-	"github.com/user/course-builder/internal/video"
+	"github.com/insigmo/course_builder/internal/config"
+	"github.com/insigmo/course_builder/internal/docx"
+	"github.com/insigmo/course_builder/internal/htmlrender"
+	"github.com/insigmo/course_builder/internal/prefix"
+	"github.com/insigmo/course_builder/internal/video"
 )
 
 // Step is one course step (video and/or text).

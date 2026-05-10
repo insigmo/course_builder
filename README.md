@@ -9,7 +9,7 @@
 ### macOS / Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/insigmo/course_builder/refs/heads/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/insigmo/course_builder/refs/heads/master/install.sh | sudo sh
 ```
 
 ### Windows (PowerShell)
