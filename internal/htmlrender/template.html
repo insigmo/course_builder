@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>__COURSE_TITLE__</title>
+  <style>
+    :root, [data-theme="light"] {
+      --bg-body: #f5f7f8; --bg-sidebar: #ffffff; --bg-card: #ffffff;
+      --bg-hover: #f8f9fa; --bg-active: #e6f7ff;
+      --text-main: #333333; --text-secondary: #555555; --text-muted: #999999;
+      --border-color: #e1e4e8;
+      --accent-blue: #1890ff; --accent-blue-hover: #096dd9; --accent-green: #52c41a;
+      --quiz-bg: #ffffff; --quiz-border: #d1d5da; --quiz-bg-hover: #eef1f5;
+      --quiz-correct-bg: #f0fdf4; --quiz-correct-border: #86efac; --quiz-correct-text: #166534;
+      --quiz-incorrect-bg: #fef2f2; --quiz-incorrect-border: #fca5a5; --quiz-incorrect-text: #991b1b;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.06);
+      --sidebar-width: 380px; --text-base: 16px;
+      --radius-lg: 18px; --radius-md: 12px; --radius-sm: 10px;
+      --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg-body: #121212; --bg-sidebar: #1e1e1e; --bg-card: #1e1e1e;
+      --bg-hover: #2d2d2d; --bg-active: #172a3a;
+      --text-main: #e0e0e0; --text-secondary: #b0b0b0; --text-muted: #666666;
+      --border-color: #333333;
+      --accent-blue: #1778d2; --accent-blue-hover: #1e8bf0; --accent-green: #43a047;
+      --quiz-bg: #252525; --quiz-border: #444444; --quiz-bg-hover: #2a2a2a;
+      --quiz-correct-bg: #143521; --quiz-correct-border: #216e3c; --quiz-correct-text: #86efac;
+      --quiz-incorrect-bg: #3b1717; --quiz-incorrect-border: #7f2222; --quiz-incorrect-text: #fca5a5;
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; background: var(--bg-body); color: var(--text-main); font-family: var(--font-ui); }
+    body { display: flex; min-height: 100vh; overflow: hidden; }
+    .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); max-width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
+    .sidebar-header { position: sticky; top: 0; z-index: 5; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); padding: 22px 20px 18px; }
+    .course-title { margin: 0 0 10px; font-size: 22px; line-height: 1.25; font-weight: 700; color: var(--text-main); word-break: break-word; }
+    .sidebar-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .progress-text { color: var(--text-secondary); font-size: 14px; }
+    .theme-toggle { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); border-radius: 10px; cursor: pointer; padding: 8px 12px; font-size: 16px; transition: background 0.2s ease, transform 0.15s ease; }
+    .theme-toggle:hover { background: var(--bg-hover); }
+    .theme-toggle:active { transform: translateY(1px); }
+    .sidebar-body { overflow-y: auto; padding: 10px 12px 24px; }
+    .lesson { border: 1px solid transparent; border-radius: 14px; margin-bottom: 8px; }
+    .lesson-header { width: 100%; display: flex; align-items: center; gap: 10px; border: none; background: transparent; color: var(--text-main); cursor: pointer; padding: 12px 12px; border-radius: 12px; text-align: left; font-size: 15px; font-weight: 650; transition: background 0.2s ease; }
+    .lesson-header:hover { background: var(--bg-hover); }
+    .lesson-arrow { display: inline-flex; width: 20px; justify-content: center; color: var(--text-muted); font-size: 13px; flex: 0 0 20px; }
+    .lesson-steps { display: flex; flex-direction: column; gap: 4px; padding: 0 0 8px 14px; }
+    .step-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; color: var(--text-secondary); padding: 10px 12px 10px 16px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 14px; transition: background 0.2s ease, color 0.2s ease; }
+    .step-item:hover { background: var(--bg-hover); color: var(--text-main); }
+    .step-item::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 4px; border-radius: 999px; background: transparent; }
+    .step-item.active { background: var(--bg-active); color: var(--accent-blue); font-weight: 600; }
+    .step-item.active::before { background: var(--accent-blue); }
+    .step-item.completed .step-check { color: var(--accent-green); opacity: 1; }
+    .step-check { flex: 0 0 18px; width: 18px; text-align: center; color: transparent; opacity: 0.15; font-size: 13px; }
+    .step-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; width: 100%; }
+    .main { flex: 1; min-width: 0; overflow-y: auto; padding: 28px; }
+    .content-wrap { max-width: 980px; margin: 0 auto; }
+    .content-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 34px 38px; }
+    .step-title-main { margin: 0 0 24px; padding-bottom: 14px; border-bottom: 2px solid var(--border-color); font-size: 34px; line-height: 1.2; color: var(--text-main); }
+    .step-content { font-size: var(--text-base); color: var(--text-main); line-height: 1.72; word-wrap: break-word; }
+    .step-content h2, .step-content h3, .step-content h4, .step-content h5, .step-content h6 { margin: 1.45em 0 0.55em; line-height: 1.25; color: var(--text-main); }
+    .step-content h2 { font-size: 28px; } .step-content h3 { font-size: 24px; } .step-content h4 { font-size: 20px; }
+    .step-content p { margin: 0 0 1em; color: var(--text-main); }
+    .step-content ul, .step-content ol { margin: 0 0 1.1em 1.4em; padding: 0; }
+    .step-content li { margin: 0.32em 0; }
+    .step-content strong { font-weight: 700; } .step-content em { font-style: italic; }
+    .video-wrapper { width: 100%; display: flex; justify-content: center; margin: 32px 0; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .video-wrapper video, .step-content video { width: 100%; max-height: 60vh; outline: none; display: block; }
+    .step-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: var(--text-base); }
+    .step-content th, .step-content td { padding: 10px 14px; border: 1px solid var(--border-color); text-align: left; vertical-align: top; }
+    .step-content th { background: var(--bg-hover); font-weight: 600; }
+    .quiz-section { margin-top: 36px; padding-top: 28px; border-top: 2px dashed var(--border-color); }
+    .quiz-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .quiz-title { margin: 0; font-size: 24px; line-height: 1.2; }
+    .quiz-reset { border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); border-radius: 10px; padding: 9px 12px; cursor: pointer; font-size: 14px; }
+    .quiz-reset:hover { background: var(--bg-hover); }
+    .quiz-list { display: grid; gap: 16px; }
+    .quiz-card { background: var(--quiz-bg); border: 1px solid var(--quiz-border); border-radius: 14px; padding: 18px 18px 16px; transition: border-color 0.2s ease, background 0.2s ease; }
+    .quiz-card.correct { background: var(--quiz-correct-bg); border-color: var(--quiz-correct-border); }
+    .quiz-card.incorrect { background: var(--quiz-incorrect-bg); border-color: var(--quiz-incorrect-border); }
+    .quiz-question { margin: 0 0 14px; font-size: 17px; line-height: 1.45; font-weight: 600; color: var(--text-main); }
+    .quiz-options { display: grid; gap: 10px; }
+    .quiz-option { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--quiz-border); border-radius: 12px; padding: 12px 13px; cursor: pointer; background: transparent; transition: background 0.2s ease, border-color 0.2s ease; }
+    .quiz-option:hover { background: var(--quiz-bg-hover); }
+    .quiz-option input { margin-top: 3px; flex: 0 0 auto; }
+    .quiz-option.correct { border-color: var(--quiz-correct-border); background: var(--quiz-correct-bg); color: var(--quiz-correct-text); }
+    .quiz-option.incorrect { border-color: var(--quiz-incorrect-border); background: var(--quiz-incorrect-bg); color: var(--quiz-incorrect-text); }
+    .quiz-message { margin-top: 12px; font-size: 14px; font-weight: 600; min-height: 20px; }
+    .quiz-card.correct .quiz-message { color: var(--quiz-correct-text); }
+    .quiz-card.incorrect .quiz-message { color: var(--quiz-incorrect-text); }
+    .nav-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--border-color); }
+    .nav-btn { appearance: none; border: none; background: var(--accent-blue); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s ease, opacity 0.2s ease, transform 0.15s ease; }
+    .nav-btn:hover:not(:disabled) { background: var(--accent-blue-hover); }
+    .nav-btn:active:not(:disabled) { transform: translateY(1px); }
+    .nav-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .empty-state { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; text-align: center; color: var(--text-secondary); box-shadow: var(--shadow-soft); }
+    @media (max-width: 980px) {
+      body { flex-direction: column; overflow: auto; }
+      .sidebar { width: 100%; min-width: 100%; max-width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); max-height: 42vh; }
+      .main { padding: 18px; }
+      .content-card { padding: 22px 18px; }
+      .step-title-main { font-size: 28px; }
+      .nav-row { flex-direction: column; }
+      .nav-btn { width: 100%; }
+      .quiz-header { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main" id="main">
+    <div class="content-wrap" id="contentWrap"></div>
+  </main>
+  <script>
+    const b64Data = "__BASE64_DATA__";
+    const courseData = JSON.parse(decodeURIComponent(escape(window.atob(b64Data))));
+    const TOTAL_STEPS = __TOTAL_STEPS__;
+    const COURSE_TITLE = "__COURSE_TITLE_JS__";
+    let currentLessonIdx = 0, currentStepIdx = 0;
+    const COURSE_KEY = "course_" + COURSE_TITLE.replace(/\s+/g,"_").replace(/[^\w\u0400-\u04FF]/g,"").slice(0,40);
+    let completedSteps = new Set(readJSON(COURSE_KEY + "_progress", []));
+    let savedQuizzes = readJSON(COURSE_KEY + "_quizzes", {});
+    let openLessons = new Set(courseData.length ? [0] : []);
+    function readJSON(k, fb) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(_) { return fb; } }
+    function writeJSON(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+    function escapeHtml(v) { return String(v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function truncateTitle(t) { return t.length > 60 ? t.slice(0, 57) + "..." : t; }
+    function stepId(l, s) { return `${l}-${s}`; }
+    function quizKey(l, s, q) { return `${l}_${s}_${q}`; }
+    // isValidStep redefined below with tree support
+    // flattenIndex/locateByFlat removed — replaced by buildFlatList/_flatList
+    function getInitialTheme() { const s=localStorage.getItem(COURSE_KEY + "_theme"); if(s==="light"||s==="dark")return s; return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"; }
+    function getCurrentTheme() { return document.documentElement.getAttribute("data-theme")||getInitialTheme(); }
+    function applyTheme(t) { document.documentElement.setAttribute("data-theme",t); const b=document.getElementById("themeToggle"); if(b)b.textContent=t==="dark"?"☀️":"🌙"; }
+    function toggleTheme() { const n=getCurrentTheme()==="dark"?"light":"dark"; localStorage.setItem(COURSE_KEY + "_theme",n); applyTheme(n); }
+    function updateProgressText() { const e=document.getElementById("progressText"); if(e)e.textContent=`Пройдено ${completedSteps.size}/${TOTAL_STEPS}`; }
+    function markStepCompleted(l,s) { const id=stepId(l,s); if(!completedSteps.has(id)){completedSteps.add(id);writeJSON(COURSE_KEY + "_progress",Array.from(completedSteps));} updateProgressText(); }
+    // Flatten all steps from tree for stepId addressing
+    // stepId uses global flat index across all steps in tree order
+    let _flatSteps = []; // [{lIdx, sIdx}] — built on renderSidebar
+    function buildFlatSteps() {
+      _flatSteps = [];
+      function walk(node, lIdx) {
+        (node.steps||[]).forEach((s,sIdx)=>_flatSteps.push({lIdx,sIdx}));
+        (node.children||[]).forEach((child,ci)=>walk(child, lIdx+"."+ci));
+      }
+      courseData.forEach((lesson,lIdx)=>walk(lesson,lIdx));
+    }
+    function renderLessonNode(node, nodeId, depth) {
+      const open = openLessons.has(nodeId);
+      const indent = depth * 14;
+      let stepsHtml = "";
+      if (open && node.steps && node.steps.length) {
+        stepsHtml = `<div class="lesson-steps">${node.steps.map((step,sIdx)=>{
+          const parts = nodeId.toString().split(".");
+          const lIdx = parseInt(parts[0]);
+          const a = (nodeId===currentLessonIdx.toString()||nodeId===currentLessonIdx)&&sIdx===currentStepIdx?"active":"";
+          const c = completedSteps.has(stepId(nodeId,sIdx))?"completed":"";
+          return `<button class="step-item ${a} ${c}" type="button" title="${escapeHtml(step.title)}" onclick="loadStepByNodeId('${nodeId}',${sIdx})"><span class="step-check">✔</span><span class="step-title">${escapeHtml(truncateTitle(step.title))}</span></button>`;
+        }).join("")}</div>`;
+      }
+      let childrenHtml = "";
+      if (open && node.children && node.children.length) {
+        childrenHtml = node.children.map((child,ci)=>renderLessonNode(child, nodeId+"."+ci, depth+1)).join("");
+      }
+      const hasContent = (node.steps&&node.steps.length)||(node.children&&node.children.length);
+      return `<section class="lesson" style="margin-left:${indent}px"><button class="lesson-header" onclick="toggleLessonNode('${nodeId}')" type="button"><span class="lesson-arrow">${open?"▼":"▶"}</span><span>${escapeHtml(node.lesson)}</span></button>${stepsHtml}${childrenHtml}</section>`;
+    }
+    function renderSidebar() {
+      const sidebar=document.getElementById("sidebar");
+      const body=sidebar.querySelector(".sidebar-body");
+      const scrollTop=body?body.scrollTop:0;
+      const icon=getCurrentTheme()==="dark"?"☀️":"🌙";
+      const html=courseData.map((lesson,lIdx)=>renderLessonNode(lesson, String(lIdx), 0)).join("");
+      sidebar.innerHTML=`<div class="sidebar-header"><h1 class="course-title">${escapeHtml(COURSE_TITLE)}</h1><div class="sidebar-meta"><div class="progress-text" id="progressText">Пройдено ${completedSteps.size}/${TOTAL_STEPS}</div><button class="theme-toggle" id="themeToggle" type="button" onclick="toggleTheme()">${icon}</button></div></div><div class="sidebar-body">${html}</div>`;
+      const newBody=sidebar.querySelector(".sidebar-body");
+      if(newBody) newBody.scrollTop=scrollTop;
+    }
+    function toggleLessonNode(nodeId) { if(openLessons.has(nodeId))openLessons.delete(nodeId);else openLessons.add(nodeId); renderSidebar(); scrollSidebarToActive(); }
+    function toggleLesson(lIdx) { toggleLessonNode(String(lIdx)); }
+    function loadStepByNodeId(nodeId, sIdx) {
+      // Find node in tree by dotted path e.g. "2.1.0"
+      const parts = nodeId.split(".").map(Number);
+      let node = courseData[parts[0]];
+      for (let i=1;i<parts.length;i++) node = node.children[parts[i]];
+      currentLessonIdx = nodeId; currentStepIdx = sIdx;
+      openLessons.add(nodeId);
+      writeJSON(COURSE_KEY+"_last_viewed",{l:nodeId,s:sIdx});
+      markStepCompleted(nodeId,sIdx);
+      renderSidebar();
+      const step = node.steps[sIdx];
+      const quizzes = Array.isArray(step.quizzes)?step.quizzes:[];
+      document.getElementById("contentWrap").innerHTML=`<div class="content-card"><h1 class="step-title-main">${escapeHtml(step.title)}</h1><div class="step-content">${step.html||""}</div>${renderQuizzes(quizzes,nodeId,sIdx)}<div class="nav-row"><button class="nav-btn" id="prevBtn" type="button" onclick="navigateFlat(-1)">← Предыдущий шаг</button><button class="nav-btn" id="nextBtn" type="button" onclick="navigateFlat(1)">Следующий шаг →</button></div></div>`;
+      quizzes.forEach((q,qi)=>{const k=quizKey(nodeId,sIdx,qi);if(Object.prototype.hasOwnProperty.call(savedQuizzes,k))applyAnswerUI(qi,Number(savedQuizzes[k]),Number(q.answer));});
+      updateNavButtons();document.getElementById("main").scrollTo({top:0,behavior:"smooth"});setTimeout(scrollSidebarToActive,200);
+    }
+    function renderQuizzes(quizzes,l,s) {
+      if(!quizzes||!quizzes.length)return"";
+      return `<section class="quiz-section"><div class="quiz-header"><h2 class="quiz-title">Проверь себя</h2><button class="quiz-reset" type="button" onclick="resetQuizzes('${l}',${s})">↻ Сбросить ответы</button></div><div class="quiz-list">${quizzes.map((q,qi)=>`<div class="quiz-card" data-quiz-index="${qi}"><p class="quiz-question">${escapeHtml(q.question)}</p><div class="quiz-options">${q.options.map((o,oi)=>`<label class="quiz-option" data-option-index="${oi}"><input type="radio" name="quiz_${l}_${s}_${qi}" value="${oi}" onchange="checkAnswer(${l},${s},${qi},${oi},${q.answer})"/><span>${escapeHtml(o)}</span></label>`).join("")}</div><div class="quiz-message"></div></div>`).join("")}</div></section>`;
+    }
+    function applyAnswerUI(qi,si,ci) {
+      const card=document.querySelector(`.quiz-card[data-quiz-index="${qi}"]`);
+      if(!card)return;
+      card.querySelectorAll(".quiz-option").forEach(o=>o.classList.remove("correct","incorrect"));
+      card.querySelectorAll('input[type="radio"]').forEach((r,i)=>{r.disabled=true;r.checked=i===si;});
+      card.classList.remove("correct","incorrect");
+      const msg=card.querySelector(".quiz-message");
+      if(si===ci){card.classList.add("correct");const s=card.querySelector(`.quiz-option[data-option-index="${si}"]`);if(s)s.classList.add("correct");if(msg)msg.textContent="Верно! Отличная работа.";}
+      else{card.classList.add("incorrect");const s=card.querySelector(`.quiz-option[data-option-index="${si}"]`);const c=card.querySelector(`.quiz-option[data-option-index="${ci}"]`);if(s)s.classList.add("incorrect");if(c)c.classList.add("correct");if(msg)msg.textContent="Ошибка. Правильный ответ подсвечен зеленым.";}
+    }
+    function checkAnswer(l,s,q,si,ci){savedQuizzes[quizKey(l,s,q)]=si;writeJSON(COURSE_KEY+"_quizzes",savedQuizzes);applyAnswerUI(q,si,ci);}
+    function resetQuizzes(l,s){const p=`${l}_${s}_`;Object.keys(savedQuizzes).forEach(k=>{if(k.startsWith(p))delete savedQuizzes[k];});writeJSON(COURSE_KEY+"_quizzes",savedQuizzes);loadStep(l,s);}
+    // Build flat list of all {nodeId, sIdx} for prev/next navigation
+    let _flatList = [];
+    function buildFlatList() {
+      _flatList = [];
+      function walk(node, nodeId) {
+        (node.steps||[]).forEach((_,sIdx)=>_flatList.push({nodeId, sIdx}));
+        (node.children||[]).forEach((child,ci)=>walk(child, nodeId+"."+ci));
+      }
+      courseData.forEach((lesson,i)=>walk(lesson, String(i)));
+    }
+    function getNodeByPath(nodeId) {
+      const parts = String(nodeId).split(".").map(Number);
+      let node = courseData[parts[0]];
+      for(let i=1;i<parts.length;i++) node = node && node.children[parts[i]];
+      return node||null;
+    }
+    function isValidStep(nodeId,sIdx) { const n=getNodeByPath(nodeId); return !!(n&&n.steps&&n.steps[sIdx]); }
+    function currentFlatIdx() { return _flatList.findIndex(x=>String(x.nodeId)===String(currentLessonIdx)&&x.sIdx===currentStepIdx); }
+    function updateNavButtons(){const p=document.getElementById("prevBtn");const n=document.getElementById("nextBtn");const f=currentFlatIdx();if(p)p.disabled=f<=0;if(n)n.disabled=f<0||f>=_flatList.length-1;}
+    function navigateFlat(dir){const f=currentFlatIdx();const nx=_flatList[f+dir];if(nx)loadStepByNodeId(nx.nodeId,nx.sIdx);}
+    function scrollSidebarToActive(){const a=document.querySelector(".step-item.active");if(a)a.scrollIntoView({behavior:"smooth",block:"nearest"});}
+    function loadStep(lIdx,sIdx){ loadStepByNodeId(String(lIdx),sIdx); }
+    function init(){
+      buildFlatList();
+      applyTheme(getInitialTheme());renderSidebar();
+      if(!courseData.length||!TOTAL_STEPS){document.getElementById("contentWrap").innerHTML=`<div class="empty-state">В курсе нет шагов для отображения.</div>`;return;}
+      const saved=readJSON(COURSE_KEY+"_last_viewed",null);
+      const nodeId=saved&&saved.l!=null?String(saved.l):"0";
+      const ss=saved&&Number.isInteger(saved.s)?saved.s:0;
+      if(isValidStep(nodeId,ss))loadStepByNodeId(nodeId,ss);
+      else if(_flatList.length)loadStepByNodeId(_flatList[0].nodeId,_flatList[0].sIdx);
+    }
+    init();
+  </script>
+</body>
+</html>
