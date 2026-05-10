@@ -21,7 +21,7 @@ irm https://raw.githubusercontent.com/insigmo/course_builder/refs/heads/master/i
 ### Сборка из исходников через go
 
 ```bash
-go install github.com/user/course-builder/cmd/course-builder
+go install github.com/insigmo/course-builder/cmd/course-builder
 ```
 
 ---
